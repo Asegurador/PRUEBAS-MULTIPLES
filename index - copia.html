@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Gestión Nutricional - ONG</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(to right, #4facfe 0%, #00f2fe 100%);
+        }
+
+        /* Estilos para el Toast */
+        #toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .toast {
+            background-color: #333;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .toast.success { background-color: #4CAF50; }
+        .toast.error { background-color: #f44336; }
+        .toast.info { background-color: #2196F3; }
+        .toast.warning { background-color: #ff9800; }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans">
+    <div id="toast-container"></div>
+
+    <header class="gradient-bg text-white p-4 shadow-md">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-2xl font-bold">Sistema de Gestión Nutricional ONG</h1>
+            <nav>
+                <ul class="flex space-x-4">
+                    <li><a href="#" class="hover:underline" id="nav-dashboard">Dashboard</a></li>
+                    <li><a href="#" class="hover:underline" id="nav-recetas">Recetas</a></li>
+                    <li><a href="#" class="hover:underline" id="nav-registros">Registros</a></li>
+                    <li><a href="#" class="hover:underline" id="nav-costos">Costos</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container mx-auto mt-8 p-4">
+        <section id="dashboard-section" class="active-section fade-in bg-white p-6 rounded-lg shadow-md mb-8">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-4">Dashboard General</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div class="bg-blue-100 p-4 rounded-lg shadow-sm">
+                    <h3 class="font-bold text-lg text-blue-800">Total de Recetas</h3>
+                    <p id="totalRecetas" class="text-3xl text-blue-600">0</p>
+                </div>
+                <div class="bg-green-100 p-4 rounded-lg shadow-sm">
+                    <h3 class="font-bold text-lg text-green-800">Registros de Consumo</h3>
+                    <p id="totalRegistros" class="text-3xl text-green-600">0</p>
+                </div>
+                <div class="bg-purple-100 p-4 rounded-lg shadow-sm">
+                    <h3 class="font-bold text-lg text-purple-800">Costo Total Estimado</h3>
+                    <p id="costoTotalEstimado" class="text-3xl text-purple-600">$0</p>
+                </div>
+                </div>
+        </section>
+
+        <section id="recetas-section" class="hidden fade-in bg-white p-6 rounded-lg shadow-md mb-8">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-4">Gestión de Recetas</h2>
+            <button id="addRecetaBtn" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md mb-4">
+                <i class="fas fa-plus mr-2"></i>Nueva Receta
+            </button>
+
+            <div id="recetaFormContainer" class="hidden mb-6 p-4 border border-gray-200 rounded-lg bg-gray-50">
+                <h3 class="text-xl font-semibold text-gray-700 mb-4">Agregar/Editar Receta</h3>
+                <form id="recetaForm">
+                    <div class="mb-4">
+                        <label for="tipoReceta" class="block text-gray-700 text-sm font-bold mb-2">Tipo de Receta:</label>
+                        <input type="text" id="tipoReceta" name="Tipo" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+                    </div>
+                    <div class="mb-4">
+                        <label for="nombreReceta" class="block text-gray-700 text-sm font-bold mb-2">Nombre de la Receta:</label>
+                        <input type="text" id="nombreReceta" name="Nombre" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+                    </div>
+                    <div class="mb-4">
+                        <label for="descripcionReceta" class="block text-gray-700 text-sm font-bold mb-2">Descripción:</label>
+                        <textarea id="descripcionReceta" name="Descripcion" rows="3" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"></textarea>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2">Ingredientes:</label>
+                        <div id="ingredientesContainer">
+                            <div class="ingredient-row flex space-x-2 mb-2">
+                                <input type="number" step="0.01" placeholder="Cantidad" class="cantidad shadow appearance-none border rounded w-1/4 py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                                <input type="text" placeholder="Unidad (ej. gr, ml, und)" class="unidad shadow appearance-none border rounded w-1/4 py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                                <input type="text" placeholder="Ingrediente (ej. Arroz)" class="ingrediente shadow appearance-none border rounded w-2/4 py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                                <button type="button" class="remove-ingredient-btn text-red-500 hover:text-red-700"><i class="fas fa-times"></i></button>
+                            </div>
+                        </div>
+                        <button type="button" id="addIngredientBtn" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-1 rounded-md text-sm mt-2"><i class="fas fa-plus mr-1"></i>Añadir Ingrediente</button>
+                    </div>
+                    <div class="mb-4">
+                        <label for="pasosReceta" class="block text-gray-700 text-sm font-bold mb-2">Pasos de Preparación:</label>
+                        <textarea id="pasosReceta" name="Pasos_Preparacion" rows="5" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"></textarea>
+                    </div>
+                    <div class="flex justify-end space-x-2">
+                        <button type="submit" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md"><i class="fas fa-save mr-2"></i>Guardar Receta</button>
+                        <button type="button" id="cancelRecetaBtn" class="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded-md">Cancelar</button>
+                    </div>
+                </form>
+            </div>
+
+            <div id="recetasList" class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nombre</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Descripción</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ingredientes</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pasos</th>
+                            <th scope="col" class="relative px-6 py-3"><span class="sr-only">Acciones</span></th>
+                        </tr>
+                    </thead>
+                    <tbody id="recetasTableBody" class="bg-white divide-y divide-gray-200">
+                        </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section id="registros-section" class="hidden fade-in bg-white p-6 rounded-lg shadow-md mb-8">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-4">Registro de Consumo</h2>
+            <button id="addRegistroBtn" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md mb-4">
+                <i class="fas fa-plus mr-2"></i>Nuevo Registro
+            </button>
+
+            <div id="registroFormContainer" class="hidden mb-6 p-4 border border-gray-200 rounded-lg bg-gray-50">
+                <h3 class="text-xl font-semibold text-gray-700 mb-4">Agregar Nuevo Registro</h3>
+                <form id="registroForm">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label for="fechaRegistro" class="block text-gray-700 text-sm font-bold mb-2">Fecha:</label>
+                            <input type="date" id="fechaRegistro" name="Fecha" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+                        </div>
+                        <div>
+                            <label for="jornadaRegistro" class="block text-gray-700 text-sm font-bold mb-2">Jornada:</label>
+                            <select id="jornadaRegistro" name="Jornada" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+                                <option value="">Seleccione...</option>
+                                <option value="Desayuno">Desayuno</option>
+                                <option value="Almuerzo">Almuerzo</option>
+                                <option value="Cena">Cena</option>
+                                <option value="Refrigerio">Refrigerio</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label for="recetaSolida" class="block text-gray-700 text-sm font-bold mb-2">Receta Sólida Consumida:</label>
+                            <select id="recetaSolida" name="Receta_ID" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                                <option value="">Seleccione Receta...</option>
+                                </select>
+                        </div>
+                        <div>
+                            <label for="bebidaRegistro" class="block text-gray-700 text-sm font-bold mb-2">Bebida Consumida (ID):</label>
+                            <select id="bebidaRegistro" name="Bebida_ID" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                                <option value="">Seleccione Bebida...</option>
+                                </select>
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <label for="participantesRegistro" class="block text-gray-700 text-sm font-bold mb-2">Número de Participantes:</label>
+                        <input type="number" id="participantesRegistro" name="Num_Participantes" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required min="1">
+                    </div>
+                    <div id="costPreview" class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-4 hidden" role="alert">
+                        <p class="font-bold">Costo Estimado de este registro:</p>
+                        <p id="estimatedCostValue" class="text-xl"></p>
+                    </div>
+                    <div class="flex justify-end space-x-2">
+                        <button type="submit" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md"><i class="fas fa-save mr-2"></i>Guardar Registro</button>
+                        <button type="button" id="cancelRegistroBtn" class="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded-md">Cancelar</button>
+                    </div>
+                </form>
+            </div>
+
+            <div id="registrosList" class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jornada</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Receta Sólida</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Bebida</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"># Participantes</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Valor Estimado Total</th>
+                        </tr>
+                    </thead>
+                    <tbody id="registrosTableBody" class="bg-white divide-y divide-gray-200">
+                        </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section id="costos-section" class="hidden fade-in bg-white p-6 rounded-lg shadow-md mb-8">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-4">Gestión de Costos por Ingrediente</h2>
+            <p class="text-gray-600 mb-4">Aquí puedes revisar y actualizar los costos por unidad de cada ingrediente. ¡Asegúrate de que los IDs coincidan!</p>
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID_Costo</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ingrediente</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Unidad_Medida</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Costo_Unitario</th>
+                            </tr>
+                    </thead>
+                    <tbody id="costosTableBody" class="bg-white divide-y divide-gray-200">
+                        </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <footer class="gradient-bg text-white p-4 text-center mt-8">
+        <p>&copy; 2023 Sistema de Gestión Nutricional ONG. Todos los derechos reservados.</p>
+    </footer>
+
+    <script async defer src="https://apis.google.com/js/api.js" onload="gapiLoaded()"></script>
+    <script async defer src="https://accounts.google.com/gsi/client" onload="gisLoaded()"></script>
+
+    <script>
+        // *** CONFIGURACIÓN CLAVE ***
+        // ID de tu Google Sheet (lo encuentras en la URL de tu hoja)
+        let SHEETS_ID = '1ywt0bW3LF9Rf8PBrdPUGcqaFYlArAiaIH8iRyT-WRso'; 
+        // URL de TU GOOGLE APPS SCRIPT DESPLEGADO
+        let APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyXHSuQTc-57ytPmndfAqtVveK-eauQJztZ0ePQs8yCbbGkwWZDvRA2GITenWhJxqDt/exec'; 
+
+        // Variables globales para almacenar los datos
+        let SHEETS_DATA = {
+            recetas: [],
+            costos: [],
+            registros: []
+        };
+        
+        // --- Variables y funciones de Google Auth y API (READ-ONLY) ---
+        // (Estas son para leer datos, el Apps Script se encarga de escribir)
+        let gapiInited = false;
+        let gisInited = false;
+
+        function gapiLoaded() {
+            gapi.load('client', initializeGapiClient);
+        }
+
+        async function initializeGapiClient() {
+            await gapi.client.init({});
+            gapiInited = true;
+            maybeEnableButtons();
+        }
+
+        function gisLoaded() {
+            gisInited = true;
+            maybeEnableButtons();
+        }
+
+        function maybeEnableButtons() {
+            if (gapiInited && gisInited) {
+                // Aquí podrías cargar los datos al inicio si todo está listo
+                loadAllSheetData();
+            }
+        }
+
+        async function loadAllSheetData() {
+            showToast('Cargando datos...', 'info');
+            try {
+                // Fetch Recetas
+                const recetasResponse = await fetch(`https://docs.google.com/spreadsheets/d/${SHEETS_ID}/gviz/tq?tqx=out:json&sheet=Recetas`);
+                const recetasText = await recetasResponse.text();
+                SHEETS_DATA.recetas = parseGoogleSheetsData(recetasText);
+
+                // Fetch Costos
+                const costosResponse = await fetch(`https://docs.google.com/spreadsheets/d/${SHEETS_ID}/gviz/tq?tqx=out:json&sheet=Costos_Ingredientes`);
+                const costosText = await costosResponse.text();
+                SHEETS_DATA.costos = parseGoogleSheetsData(costosText);
+
+                // Fetch Registros (si es necesario que se carguen al inicio, si no, se omitiría)
+                const registrosResponse = await fetch(`https://docs.google.com/spreadsheets/d/${SHEETS_ID}/gviz/tq?tqx=out:json&sheet=Registros_Consumo`);
+                const registrosText = await registrosResponse.text();
+                SHEETS_DATA.registros = parseGoogleSheetsData(registrosText);
+
+                // Después de cargar todos los datos, renderiza las vistas
+                showToast('Datos cargados correctamente', 'success');
+                renderActiveSection();
+                updateDashboard();
+                populateRecipeSelects(); // Vuelve a llenar los selects después de cargar
+            } catch (error) {
+                console.error("Error al cargar datos de Google Sheets:", error);
+                showToast('Error al cargar datos. Verifique el ID de la hoja y permisos.', 'error');
+            }
+        }
+
+        // Función para parsear el formato especial de Google Visualization API
+        function parseGoogleSheetsData(jsonString) {
+            const jsonStr = jsonString.substring(jsonString.indexOf('{'), jsonString.lastIndexOf('}') + 1);
+            const data = JSON.parse(jsonStr);
+            const columns = data.table.cols.map(col => col.label);
+            const rows = data.table.rows.map(row => {
+                let obj = {};
+                row.c.forEach((cell, i) => {
+                    if (cell && cell.v !== undefined) {
+                        obj[columns[i]] = cell.v;
+                    } else {
+                        obj[columns[i]] = ''; // Asegura que no haya 'null' o 'undefined'
+                    }
+                });
+                return obj;
+            });
+            return rows;
+        }
+
+        // --- Funciones de navegación y UI ---
+        function switchSection(sectionId) {
+            document.querySelectorAll('section').forEach(section => {
+                section.classList.add('hidden');
+                section.classList.remove('active-section');
+            });
+            const activeSection = document.getElementById(sectionId);
+            activeSection.classList.remove('hidden');
+            activeSection.classList.add('active-section');
+            renderActiveSection();
+        }
+
+        function renderActiveSection() {
+            const activeSectionId = document.querySelector('.active-section').id;
+            if (activeSectionId === 'recetas-section') {
+                renderRecetas();
+            } else if (activeSectionId === 'registros-section') {
+                renderRegistros();
+            } else if (activeSectionId === 'costos-section') {
+                renderCostos();
+            }
+            // Dashboard se actualiza con updateDashboard()
+        }
+
+        // --- Funciones para Recetas ---
+        function toggleRecetaForm() {
+            document.getElementById('recetaFormContainer').classList.toggle('hidden');
+            document.getElementById('recetaForm').reset();
+            document.getElementById('ingredientesContainer').innerHTML = `
+                <div class="ingredient-row flex space-x-2 mb-2">
+                    <input type="number" step="0.01" placeholder="Cantidad" class="cantidad shadow appearance-none border rounded w-1/4 py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    <input type="text" placeholder="Unidad (ej. gr, ml, und)" class="unidad shadow appearance-none border rounded w-1/4 py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    <input type="text" placeholder="Ingrediente (ej. Arroz)" class="ingrediente shadow appearance-none border rounded w-2/4 py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    <button type="button" class="remove-ingredient-btn text-red-500 hover:text-red-700"><i class="fas fa-times"></i></button>
+                </div>
+            `;
+        }
+
+        function addIngredientRow() {
+            const container = document.getElementById('ingredientesContainer');
+            const newRow = document.createElement('div');
+            newRow.classList.add('ingredient-row', 'flex', 'space-x-2', 'mb-2');
+            newRow.innerHTML = `
+                <input type="number" step="0.01" placeholder="Cantidad" class="cantidad shadow appearance-none border rounded w-1/4 py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                <input type="text" placeholder="Unidad (ej. gr, ml, und)" class="unidad shadow appearance-none border rounded w-1/4 py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                <input type="text" placeholder="Ingrediente (ej. Arroz)" class="ingrediente shadow appearance-none border rounded w-2/4 py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                <button type="button" class="remove-ingredient-btn text-red-500 hover:text-red-700"><i class="fas fa-times"></i></button>
+            `;
+            container.appendChild(newRow);
+        }
+
+        function removeIngredientRow(button) {
+            button.closest('.ingredient-row').remove();
+        }
+
+        async function saveReceta(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const ingredientes = [];
+            
+            document.querySelectorAll('.ingredient-row').forEach(row => {
+                const cantidad = row.querySelector('.cantidad').value;
+                const unidad = row.querySelector('.unidad').value;
+                const ingrediente = row.querySelector('.ingrediente').value;
+                
+                if (cantidad && ingrediente) {
+                    ingredientes.push(`${cantidad}${unidad} ${ingrediente}`);
+                }
+            });
+            
+            if (ingredientes.length === 0) {
+                showToast('Debe agregar al menos un ingrediente', 'error');
+                return;
+            }
+            
+            const recetaData = { 
+                Tipo: document.getElementById('tipoReceta').value,
+                Nombre: document.getElementById('nombreReceta').value,
+                Descripcion: document.getElementById('descripcionReceta').value,
+                Ingredientes_JSON: JSON.stringify(ingredientes),
+                Pasos_Preparacion: document.getElementById('pasosReceta').value
+            };
+
+            // INICIO: NUEVA LÓGICA PARA ENVIAR DATOS A GOOGLE APPS SCRIPT
+            try {
+                showToast('Guardando receta...', 'info'); 
+                const response = await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'cors', 
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ action: 'guardarReceta', receta: recetaData }) 
+                });
+                
+                const result = await response.json(); 
+                
+                if (result.success) {
+                    recetaData.ID_Receta = result.newRecetaId; 
+                    SHEETS_DATA.recetas.push(recetaData); 
+                    
+                    showToast('Receta guardada correctamente');
+                    toggleRecetaForm();
+                    renderRecetas();
+                    populateRecipeSelects();
+                    updateDashboard();
+                } else {
+                    showToast(`Error al guardar la receta: ${result.message}`, 'error');
+                    console.error('Error del Apps Script:', result.message);
+                }
+            } catch (error) {
+                console.error('Error de conexión o en la solicitud a Apps Script:', error);
+                showToast('Error de conexión al guardar la receta. Revisa la consola.', 'error');
+            }
+            // FIN: NUEVA LÓGICA
+        }
+
+        function renderRecetas() {
+            const tableBody = document.getElementById('recetasTableBody');
+            tableBody.innerHTML = '';
+            if (SHEETS_DATA.recetas && SHEETS_DATA.recetas.length > 0) {
+                SHEETS_DATA.recetas.forEach(receta => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${receta.ID_Receta || ''}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${receta.Tipo || ''}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${receta.Nombre || ''}</td>
+                        <td class="px-6 py-4 text-sm text-gray-900 max-w-xs truncate">${receta.Descripcion || ''}</td>
+                        <td class="px-6 py-4 text-sm text-gray-900 max-w-xs truncate">${formatIngredients(receta.Ingredientes_JSON)}</td>
+                        <td class="px-6 py-4 text-sm text-gray-900 max-w-xs truncate">${receta.Pasos_Preparacion || ''}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                            </td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+            } else {
+                tableBody.innerHTML = '<tr><td colspan="7" class="px-6 py-4 text-center text-gray-500">No hay recetas disponibles.</td></tr>';
+            }
+        }
+
+        function formatIngredients(jsonString) {
+            try {
+                const ingredients = JSON.parse(jsonString);
+                if (Array.isArray(ingredients)) {
+                    return ingredients.join(', ');
+                }
+            } catch (e) {
+                // Si no es un JSON válido, simplemente devuelve el string original
+            }
+            return jsonString || '';
+        }
+
+        // --- Funciones para Registros ---
+        function toggleRegistroForm() {
+            document.getElementById('registroFormContainer').classList.toggle('hidden');
+            document.getElementById('registroForm').reset();
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('fechaRegistro').value = today;
+            document.getElementById('costPreview').classList.add('hidden');
+        }
+
+        async function saveRegistro(e) {
+            e.preventDefault();
+            
+            const registroData = { 
+                Fecha: document.getElementById('fechaRegistro').value,
+                Jornada: document.getElementById('jornadaRegistro').value,
+                Receta_ID: document.getElementById('recetaSolida').value,
+                Bebida_ID: document.getElementById('bebidaRegistro').value,
+                Num_Participantes: parseInt(document.getElementById('participantesRegistro').value),
+                Valor_Estimado_Total: calculateTotalCost()
+            };
+            
+            // INICIO: NUEVA LÓGICA PARA ENVIAR DATOS A GOOGLE APPS SCRIPT
+            try {
+                showToast('Guardando registro...', 'info'); 
+                const response = await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'cors', 
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ action: 'guardarRegistro', registro: registroData }) 
+                });
+                
+                const result = await response.json(); 
+                
+                if (result.success) {
+                    SHEETS_DATA.registros.push(registroData); 
+                    
+                    showToast('Registro guardado correctamente');
+                    document.getElementById('registroForm').reset();
+                    document.getElementById('costPreview').classList.add('hidden');
+                    
+                    const today = new Date().toISOString().split('T')[0];
+                    document.getElementById('fechaRegistro').value = today;
+                    
+                    updateDashboard();
+                } else {
+                    showToast(`Error al guardar el registro: ${result.message}`, 'error');
+                    console.error('Error del Apps Script:', result.message);
+                }
+            } catch (error) {
+                console.error('Error de conexión o en la solicitud a Apps Script:', error);
+                showToast('Error de conexión al guardar el registro. Revisa la consola.', 'error');
+            }
+            // FIN: NUEVA LÓGICA
+        }
+
+        function renderRegistros() {
+            const tableBody = document.getElementById('registrosTableBody');
+            tableBody.innerHTML = '';
+            if (SHEETS_DATA.registros && SHEETS_DATA.registros.length > 0) {
+                // Ordenar registros por fecha descendente
+                const sortedRegistros = [...SHEETS_DATA.registros].sort((a, b) => new Date(b.Fecha) - new Date(a.Fecha));
+
+                sortedRegistros.forEach(registro => {
+                    const receta = SHEETS_DATA.recetas.find(r => r.ID_Receta === registro.Receta_ID);
+                    const bebida = SHEETS_DATA.recetas.find(b => b.ID_Receta === registro.Bebida_ID); // Asumiendo que las bebidas también están en Recetas
+
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${formatDate(registro.Fecha)}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${registro.Jornada}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${receta ? receta.Nombre : registro.Receta_ID}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${bebida ? bebida.Nombre : registro.Bebida_ID}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${registro.Num_Participantes}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${formatCurrency(registro.Valor_Estimado_Total)}</td>
+                    </tr>
+                    `;
+                    tableBody.appendChild(row);
+                });
+            } else {
+                tableBody.innerHTML = '<tr><td colspan="6" class="px-6 py-4 text-center text-gray-500">No hay registros de consumo.</td></tr>';
+            }
+        }
+
+        // --- Funciones para Costos ---
+        function renderCostos() {
+            const tableBody = document.getElementById('costosTableBody');
+            tableBody.innerHTML = '';
+            if (SHEETS_DATA.costos && SHEETS_DATA.costos.length > 0) {
+                SHEETS_DATA.costos.forEach(costo => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${costo.ID_Costo || ''}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${costo.Ingrediente || ''}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${costo.Unidad_Medida || ''}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${formatCurrency(costo.Costo_Unitario)}</td>
+                        `;
+                    tableBody.appendChild(row);
+                });
+            } else {
+                tableBody.innerHTML = '<tr><td colspan="4" class="px-6 py-4 text-center text-gray-500">No hay datos de costos de ingredientes.</td></tr>';
+            }
+        }
+
+        // --- Funciones para Dashboard ---
+        function updateDashboard() {
+            document.getElementById('totalRecetas').textContent = SHEETS_DATA.recetas.length;
+            document.getElementById('totalRegistros').textContent = SHEETS_DATA.registros.length;
+            
+            const totalCosto = SHEETS_DATA.registros.reduce((sum, reg) => sum + (reg.Valor_Estimado_Total || 0), 0);
+            document.getElementById('costoTotalEstimado').textContent = formatCurrency(totalCosto);
+        }
+
+        // --- Funciones de Utilidad ---
+        function populateRecipeSelects() {
+            const recetaSelect = document.getElementById('recetaSolida');
+            const bebidaSelect = document.getElementById('bebidaRegistro');
+
+            // Limpiar opciones existentes (excepto la primera "Seleccione...")
+            recetaSelect.innerHTML = '<option value="">Seleccione Receta...</option>';
+            bebidaSelect.innerHTML = '<option value="">Seleccione Bebida...</option>';
+
+            const solidas = SHEETS_DATA.recetas.filter(r => r.Tipo === 'Comida');
+            const bebidas = SHEETS_DATA.recetas.filter(r => r.Tipo === 'Bebida');
+
+            solidas.forEach(receta => {
+                const option = document.createElement('option');
+                option.value = receta.ID_Receta;
+                option.textContent = receta.Nombre;
+                recetaSelect.appendChild(option);
+            });
+
+            bebidas.forEach(receta => {
+                const option = document.createElement('option');
+                option.value = receta.ID_Receta;
+                option.textContent = receta.Nombre;
+                bebidaSelect.appendChild(option);
+            });
+        }
+        
+        function calculateTotalCost() {
+            const recetaId = document.getElementById('recetaSolida').value;
+            const bebidaId = document.getElementById('bebidaRegistro').value;
+            const numParticipantes = parseInt(document.getElementById('participantesRegistro').value) || 0;
+            
+            let totalCost = 0;
+
+            // Costo de la receta sólida
+            if (recetaId) {
+                const receta = SHEETS_DATA.recetas.find(r => r.ID_Receta === recetaId);
+                if (receta && receta.Ingredientes_JSON) {
+                    try {
+                        const ingredientes = JSON.parse(receta.Ingredientes_JSON);
+                        ingredientes.forEach(ing => {
+                            const match = ing.match(/(\d+(\.\d+)?)\s*([a-zA-Z]+)\s*(.*)/);
+                            if (match) {
+                                const cantidad = parseFloat(match[1]);
+                                const unidad = match[3].toLowerCase();
+                                const nombreIngrediente = match[4].trim();
+                                
+                                const costoIngrediente = SHEETS_DATA.costos.find(c => 
+                                    c.Ingrediente.toLowerCase() === nombreIngrediente.toLowerCase() && 
+                                    c.Unidad_Medida.toLowerCase() === unidad
+                                );
+
+                                if (costoIngrediente) {
+                                    totalCost += cantidad * costoIngrediente.Costo_Unitario;
+                                } else {
+                                    console.warn(`Costo no encontrado para: ${nombreIngrediente} (${unidad})`);
+                                }
+                            }
+                        });
+                    } catch (e) {
+                        console.error("Error al parsear ingredientes JSON de la receta:", e);
+                    }
+                }
+            }
+
+            // Costo de la bebida
+            if (bebidaId) {
+                const bebida = SHEETS_DATA.recetas.find(r => r.ID_Receta === bebidaId);
+                if (bebida && bebida.Ingredientes_JSON) {
+                    try {
+                        const ingredientes = JSON.parse(bebida.Ingredientes_JSON);
+                        ingredientes.forEach(ing => {
+                            const match = ing.match(/(\d+(\.\d+)?)\s*([a-zA-Z]+)\s*(.*)/);
+                            if (match) {
+                                const cantidad = parseFloat(match[1]);
+                                const unidad = match[3].toLowerCase();
+                                const nombreIngrediente = match[4].trim();
+                                
+                                const costoIngrediente = SHEETS_DATA.costos.find(c => 
+                                    c.Ingrediente.toLowerCase() === nombreIngrediente.toLowerCase() && 
+                                    c.Unidad_Medida.toLowerCase() === unidad
+                                );
+
+                                if (costoIngrediente) {
+                                    totalCost += cantidad * costoIngrediente.Costo_Unitario;
+                                } else {
+                                    console.warn(`Costo no encontrado para: ${nombreIngrediente} (${unidad})`);
+                                }
+                            }
+                        });
+                    } catch (e) {
+                        console.error("Error al parsear ingredientes JSON de la bebida:", e);
+                    }
+                }
+            }
+            
+            // Multiplicar por el número de participantes si no es 0
+            if (numParticipantes > 0) {
+                totalCost *= numParticipantes;
+            }
+
+            const costPreviewDiv = document.getElementById('costPreview');
+            const estimatedCostValue = document.getElementById('estimatedCostValue');
+            if (totalCost > 0) {
+                estimatedCostValue.textContent = formatCurrency(totalCost);
+                costPreviewDiv.classList.remove('hidden');
+            } else {
+                costPreviewDiv.classList.add('hidden');
+            }
+
+            return totalCost;
+        }
+
+        // Utility functions
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('es-CO', {
+                style: 'currency',
+                currency: 'COP',
+                minimumFractionDigits: 0
+            }).format(amount || 0);
+        }
+        
+        function formatDate(dateStr) {
+            if (!dateStr) return '';
+            const date = new Date(dateStr);
+            return date.toLocaleDateString('es-CO');
+        }
+
+        // --- Funciones de Toast (Notificaciones) ---
+        function showToast(message, type = 'info', duration = 3000) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.classList.add('toast', type);
+            toast.textContent = message;
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.classList.add('show');
+            }, 10); // Pequeño retraso para la animación
+
+            setTimeout(() => {
+                toast.classList.remove('show');
+                toast.addEventListener('transitionend', () => toast.remove());
+            }, duration);
+        }
+        
+        // --- Event Listeners ---
+        document.addEventListener('DOMContentLoaded', () => {
+            // Navegación
+            document.getElementById('nav-dashboard').addEventListener('click', (e) => { e.preventDefault(); switchSection('dashboard-section'); });
+            document.getElementById('nav-recetas').addEventListener('click', (e) => { e.preventDefault(); switchSection('recetas-section'); });
+            document.getElementById('nav-registros').addEventListener('click', (e) => { e.preventDefault(); switchSection('registros-section'); });
+            document.getElementById('nav-costos').addEventListener('click', (e) => { e.preventDefault(); switchSection('costos-section'); });
+
+            // Recetas
+            document.getElementById('addRecetaBtn').addEventListener('click', toggleRecetaForm);
+            document.getElementById('cancelRecetaBtn').addEventListener('click', toggleRecetaForm);
+            document.getElementById('recetaForm').addEventListener('submit', saveReceta);
+            document.getElementById('addIngredientBtn').addEventListener('click', addIngredientRow);
+            document.getElementById('ingredientesContainer').addEventListener('click', (e) => {
+                if (e.target.classList.contains('remove-ingredient-btn') || e.target.closest('.remove-ingredient-btn')) {
+                    removeIngredientRow(e.target.closest('.remove-ingredient-btn') || e.target);
+                }
+            });
+
+            // Registros
+            document.getElementById('addRegistroBtn').addEventListener('click', toggleRegistroForm);
+            document.getElementById('cancelRegistroBtn').addEventListener('click', toggleRegistroForm);
+            document.getElementById('registroForm').addEventListener('submit', saveRegistro);
+            document.getElementById('recetaSolida').addEventListener('change', calculateTotalCost);
+            document.getElementById('bebidaRegistro').addEventListener('change', calculateTotalCost);
+            document.getElementById('participantesRegistro').addEventListener('input', calculateTotalCost);
+
+            // Inicializar la fecha de registro a hoy
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('fechaRegistro').value = today;
+        });
+
+        // Cargar los datos al inicio
+        // La carga se inicia en maybeEnableButtons() cuando gapi y gis están listos
+    </script>
+</body>
+</html>
