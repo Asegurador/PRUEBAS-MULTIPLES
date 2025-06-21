@@ -1289,6 +1289,13 @@
       </div>
     </main>
 
+    <div id="toast" class="hidden fixed top-4 right-4 z-50">
+        <div class="bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg">
+          <span id="toastMessage">Mensaje</span>
+        </div>
+      </div>
+      
+
     <!-- Toast Notifications -->
     <div id="toastContainer" class="fixed top-4 right-4 z-50 space-y-2"></div>
 
@@ -1360,7 +1367,7 @@
           .getElementById("recetaForm")
           .addEventListener("submit", saveReceta);
         document
-          .getElementById("cancelReceta")
+        getElementById("cancelForm")
           .addEventListener("click", toggleRecetaForm);
         document
           .getElementById("addIngredient")
@@ -2822,6 +2829,5 @@
     <div id="sistemaContainer"></div>
     <div id="loginContainer" class="hidden"></div>
 
-    <script src="configuracion.js"></script>
   </body>
 </html>
