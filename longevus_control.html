@@ -530,21 +530,20 @@
         <i class="fas fa-plus fa-lg"></i>
     </button>
 
-    <!-- Modal de Imagen -->
-<div class="modal fade" id="modalFoto" tabindex="-1" aria-labelledby="modalFotoLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered modal-lg">
-    <div class="modal-content bg-dark text-white">
-      <div class="modal-header border-0">
-        <h5 class="modal-title" id="modalFotoLabel">Vista de la Foto</h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-      </div>
-      <div class="modal-body text-center">
-        <img id="imagenModal" src="" alt="Foto utensilio" class="img-fluid rounded shadow" style="max-height: 500px;">
-      </div>
+    <!-- Modal para ver foto -->
+    <div class="modal fade" id="photoModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Foto del Utensilio</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <img id="modalPhoto" class="img-fluid rounded" alt="Foto del utensilio">
+                </div>
+            </div>
+        </div>
     </div>
-  </div>
-</div>
-
 
     <!-- Bootstrap JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
@@ -712,30 +711,13 @@
 
             return true;
         }
+
         
 function formatDate(dateString) {
-    if (!dateString) return 'Fecha inválida';
-
-    if (dateString.includes('-')) {
-        const parts = dateString.split('-');
-        // Formato yyyy-mm-dd
-        if (parts[0].length === 4) {
-            return `${parts[2]}-${parts[1]}-${parts[0]}`;
-        }
-        // Formato dd-mm-yyyy
-        if (parts[0].length === 2) {
-            return `${parts[0]}-${parts[1]}-${parts[2]}`;
-        }
-    }
-
-    if (dateString.includes('/')) {
-        const parts = dateString.split('/');
-        if (parts.length === 3) {
-            return `${parts[0]}-${parts[1]}-${parts[2]}`;
-        }
-    }
-
-    return 'Fecha inválida';
+  // Acepta formato yyyy-mm-dd y devuelve dd-mm-yyyy
+  const [year, month, day] = dateString.split('-');
+  if (!year || !month || !day) return 'Fecha inválida';
+  return `${day}-${month}-${year}`;
 }
 
 async function submitToGoogleSheets(data) {
@@ -803,7 +785,7 @@ async function loadDatabase() {
       nombreUtensilio: r.c[4]?.v || '',
       descripcionDano: r.c[5]?.v || '',
       apruebaDano: r.c[6]?.v || '',
-      fotoUrl: r.c[7]?.v?.toString().trim() || ''
+      fotoUrl: r.c[7]?.v || ''
     }));
 
     const filtrados = rows.filter(r => {
@@ -832,12 +814,10 @@ async function loadDatabase() {
         <td>${getStatusBadge(r.descripcionDano)}</td>
         <td>${getApprovalBadge(r.apruebaDano)}</td>
         <td>
-  ${record.fotoUrl ? `
-    <button class="btn btn-sm btn-outline-primary" onclick="showPhoto('${record.fotoUrl}')">
-      <i class="fas fa-image"></i> Ver Foto
-    </button>` : '<span class="text-muted">Sin Foto</span>'}
-</td>
-
+          <button class="btn btn-sm btn-outline-primary" onclick="showPhoto('${r.fotoUrl}')">
+            <i class="fas fa-image"></i>
+          </button>
+        </td>
         <td><span class="text-muted">🔒</span></td>
       </tr>
     `).join('');
@@ -882,10 +862,8 @@ async function loadDatabase() {
         }
 
         function showPhoto(url) {
-          const modalImg = document.getElementById('imagenModal');
-          modalImg.src = url;
-          const modal = new bootstrap.Modal(document.getElementById('modalFoto'));
-          modal.show();
+            document.getElementById('modalPhoto').src = url;
+            new bootstrap.Modal(document.getElementById('photoModal')).show();
         }
 
         function deleteRecord(id) {
