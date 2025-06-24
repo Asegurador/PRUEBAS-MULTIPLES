@@ -5,12 +5,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Longevus - Sistema de Gestión</title>
-    <link rel="icon" type="image/png" href="https://png.pngtree.com/png-clipart/20230810/original/pngtree-cartoon-art-logo-icon-of-a-master-chef-character-with-kitchen-utensils-vector-picture-image_10231625.png">
+    <link rel="icon" type="image/png"
+        href="https://png.pngtree.com/png-clipart/20230810/original/pngtree-cartoon-art-logo-icon-of-a-master-chef-character-with-kitchen-utensils-vector-picture-image_10231625.png">
 
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"rel="stylesheet">
-    
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+
     <style>
         :root {
             --primary-color: #2fa35f;
@@ -523,18 +525,18 @@
     </button>
 
     <div class="modal fade" id="photoModal" tabindex="-1">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">Foto del Utensilio</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body text-center">
-        <img id="modalPhoto" class="img-fluid rounded" alt="Foto del utensilio">
-      </div>
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Foto del Utensilio</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <img id="modalPhoto" class="img-fluid rounded" alt="Foto del utensilio">
+                </div>
+            </div>
+        </div>
     </div>
-  </div>
-</div>
 
 
 
@@ -571,7 +573,7 @@
                 document.getElementById('currentUser').textContent = usuario;
             }
         }
-        
+
         function paginaPrincipal() {
             window.location.href = 'index.html';
         }
@@ -611,7 +613,7 @@
             // Iniciar timer
             resetTimer();
         }
-        
+
         function showModule(module) {
             // Ocultar todos los módulos
             document.getElementById('homeModule').style.display = 'none';
@@ -705,13 +707,13 @@
             return true;
         }
 
-        
+
         async function submitToGoogleSheets(data) {
             const reader = new FileReader();
             return new Promise((resolve, reject) => {
                 reader.onload = async function () {
                     const base64 = reader.result.split(',')[1];
-                    
+
                     const formData = new URLSearchParams();
                     formData.append('fecha', data.fecha);
                     formData.append('responsable', data.responsable);
@@ -765,10 +767,10 @@
                 // El parámetro 'sheet' debe coincidir con el nombre de tu pestaña en Google Sheets
                 const sheetId = GOOGLE_SHEETS_URL.match(/\/d\/(.*?)\//)[1]; // Extrae el ID de la URL
                 const gvizUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&sheet=Utensilios`;
-                
+
                 const response = await fetch(gvizUrl);
                 const text = await response.text();
-                
+
                 // --- PARSING DEL JSONP MEJORADO ---
                 // Busca el inicio y fin del objeto JSON dentro de la respuesta
                 const jsonStart = text.indexOf('{');
@@ -814,19 +816,19 @@
 
                     const [yyyy, mm] = r.fecha.split('-'); // Extrae el mes del formato YYYY-MM-DD
                     const mesActual = mm;
-                    
+
                     // Asegura que el estado para filtrar sea el mismo que se define en getStatusBadge
                     // Extrae solo el texto del badge para la comparación
                     const tempDiv = document.createElement('div');
                     tempDiv.innerHTML = getStatusBadge(r.descripcionDano);
                     const estadoParaFiltrar = tempDiv.textContent.trim();
-                    
+
                     const aprobacionActual = r.apruebaDano;
 
                     return (!mes || mes === mesActual) &&
-                           (!tipo || tipo === r.tipoUtensilio) &&
-                           (!estado || estado === estadoParaFiltrar) && // Compara con el texto extraído
-                           (!aprobacion || aprobacion === aprobacionActual);
+                        (!tipo || tipo === r.tipoUtensilio) &&
+                        (!estado || estado === estadoParaFiltrar) && // Compara con el texto extraído
+                        (!aprobacion || aprobacion === aprobacionActual);
                 });
 
                 if (filtrados.length === 0) {
@@ -896,13 +898,13 @@
             }
         }
 
-       function showPhoto(url) {
-         const img = document.getElementById('modalPhoto');
-         img.src = url;
+        function showPhoto(url) {
+            const img = document.getElementById('modalPhoto');
+            img.src = url;
 
-         const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('photoModal'));
-         modal.show();
-       }
+            const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('photoModal'));
+            modal.show();
+        }
 
         function deleteRecord(id) {
             if (confirm('¿Estás seguro de que quieres eliminar este registro?')) {
@@ -962,7 +964,8 @@
                 window.location.href = 'longevus_login.html';
             }, 1500);
         }
-        
+
     </script>
 </body>
+
 </html>
