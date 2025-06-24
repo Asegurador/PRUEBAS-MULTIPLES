@@ -723,7 +723,7 @@
                     formData.append('foto_tipo', data.foto.type);
 
                     try {
-                        const res = await fetch(APPS_SCRIPT_WEB_APP_URL, {
+                        const res = await fetch(APPS_SCRIPT_WEB_APP_URL, { // Usa la constante global
                             method: 'POST',
                             body: formData
                         });
@@ -763,7 +763,6 @@
             try {
                 // Se usa la URL gviz/tq para obtener los datos de la hoja de cálculo
                 // El parámetro 'sheet' debe coincidir con el nombre de tu pestaña en Google Sheets
-                // Se utiliza el SHEET_ID para construir la URL, que es más fiable que el GOOGLE_SHEETS_URL completo
                 const sheetId = GOOGLE_SHEETS_URL.match(/\/d\/(.*?)\//)[1]; // Extrae el ID de la URL
                 const gvizUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&sheet=Utensilios`;
                 
@@ -817,19 +816,16 @@
                     const mesActual = mm;
                     
                     // Asegura que el estado para filtrar sea el mismo que se define en getStatusBadge
-                    const estadoTexto = getStatusBadge(r.descripcionDano);
-                    let estadoParaFiltrar = '';
-                    if (estadoTexto.includes('Dañado')) {
-                        estadoParaFiltrar = 'Dañado';
-                    } else if (estadoTexto.includes('Pronto a Dañar')) {
-                        estadoParaFiltrar = 'Pronto a Dañar';
-                    }
-
+                    // Extrae solo el texto del badge para la comparación
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = getStatusBadge(r.descripcionDano);
+                    const estadoParaFiltrar = tempDiv.textContent.trim();
+                    
                     const aprobacionActual = r.apruebaDano;
 
                     return (!mes || mes === mesActual) &&
                            (!tipo || tipo === r.tipoUtensilio) &&
-                           (!estado || estado === estadoParaFiltrar) &&
+                           (!estado || estado === estadoParaFiltrar) && // Compara con el texto extraído
                            (!aprobacion || aprobacion === aprobacionActual);
                 });
 
