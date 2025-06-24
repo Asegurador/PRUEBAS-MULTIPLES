@@ -863,10 +863,11 @@
         function formatDate(dateString) {
     if (!dateString) return 'Fecha inválida';
 
-    // Si es un número (por ejemplo, serial de Excel)
-    if (typeof dateString === 'number') {
-        const date = new Date(Math.round((dateString - 25569) * 86400 * 1000)); // Convertir serial a fecha
-        return `${String(date.getDate()).padStart(2, '0')}-${String(date.getMonth() + 1).padStart(2, '0')}-${date.getFullYear()}`;
+    // Detecta el formato tipo "Date(2025,5,24)"
+    const match = dateString.match(/^Date\((\d+),(\d+),(\d+)\)$/);
+    if (match) {
+        const [, year, month, day] = match;
+        return `${String(day).padStart(2, '0')}-${String(Number(month) + 1).padStart(2, '0')}-${year}`;
     }
 
     // Si es una cadena tipo "2025-06-24"
@@ -879,6 +880,7 @@
 
     return 'Fecha inválida';
 }
+
 
 
         function getStatusBadge(descripcion) {
