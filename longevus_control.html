@@ -711,13 +711,30 @@
 
             return true;
         }
-
         
 function formatDate(dateString) {
-  // Acepta formato yyyy-mm-dd y devuelve dd-mm-yyyy
-  const [year, month, day] = dateString.split('-');
-  if (!year || !month || !day) return 'Fecha inválida';
-  return `${day}-${month}-${year}`;
+    if (!dateString) return 'Fecha inválida';
+
+    if (dateString.includes('-')) {
+        const parts = dateString.split('-');
+        // Formato yyyy-mm-dd
+        if (parts[0].length === 4) {
+            return `${parts[2]}-${parts[1]}-${parts[0]}`;
+        }
+        // Formato dd-mm-yyyy
+        if (parts[0].length === 2) {
+            return `${parts[0]}-${parts[1]}-${parts[2]}`;
+        }
+    }
+
+    if (dateString.includes('/')) {
+        const parts = dateString.split('/');
+        if (parts.length === 3) {
+            return `${parts[0]}-${parts[1]}-${parts[2]}`;
+        }
+    }
+
+    return 'Fecha inválida';
 }
 
 async function submitToGoogleSheets(data) {
@@ -785,7 +802,7 @@ async function loadDatabase() {
       nombreUtensilio: r.c[4]?.v || '',
       descripcionDano: r.c[5]?.v || '',
       apruebaDano: r.c[6]?.v || '',
-      fotoUrl: r.c[7]?.v || ''
+      fotoUrl: r.c[7]?.v?.toString().trim() || ''
     }));
 
     const filtrados = rows.filter(r => {
