@@ -814,9 +814,10 @@ async function loadDatabase() {
         <td>${getStatusBadge(r.descripcionDano)}</td>
         <td>${getApprovalBadge(r.apruebaDano)}</td>
         <td>
-          <button class="btn btn-sm btn-outline-primary" onclick="showPhoto('${r.fotoUrl}')">
-            <i class="fas fa-image"></i>
-          </button>
+          ${r.fotoUrl && r.fotoUrl.startsWith('http') ? `
+            <button class="btn btn-sm btn-outline-primary" onclick="showPhoto('${r.fotoUrl.replace(/'/g, "\\'")}')">
+              <i class="fas fa-image me-1"></i>
+            </button>` : '<span class="text-muted">Sin Foto</span>'}
         </td>
         <td><span class="text-muted">🔒</span></td>
       </tr>
