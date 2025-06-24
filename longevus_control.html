@@ -778,17 +778,14 @@ async function loadDatabase() {
     const text = await res.text();
     const json = JSON.parse(text.substring(47).slice(0, -2));
 
-    const rows = json.table.rows.map(r => {
-      const fotoUrl = r.c[7]?.v?.toString().trim() || '';
-      console.log('📷 URL de foto detectada:', fotoUrl);  // ✅ Añádelo aquí
-        
+    const rows = json.table.rows.map(r => ({
       fecha: r.c[1]?.v || '',
       responsable: r.c[2]?.v || '',
       tipoUtensilio: r.c[3]?.v || '',
       nombreUtensilio: r.c[4]?.v || '',
       descripcionDano: r.c[5]?.v || '',
       apruebaDano: r.c[6]?.v || '',
-      fotoUrl: fotoUrl
+      fotoUrl: r.c[7]?.v || ''
     }));
 
     const filtrados = rows.filter(r => {
@@ -817,10 +814,9 @@ async function loadDatabase() {
         <td>${getStatusBadge(r.descripcionDano)}</td>
         <td>${getApprovalBadge(r.apruebaDano)}</td>
         <td>
-          ${r.fotoUrl && r.fotoUrl.startsWith('http') ? `
-            <button class="btn btn-sm btn-outline-primary" onclick="showPhoto('${r.fotoUrl.replace(/'/g, "\\'")}')">
-              <i class="fas fa-image me-1"></i>
-            </button>` : '<span class="text-muted">Sin Foto</span>'}
+          <button class="btn btn-sm btn-outline-primary" onclick="showPhoto('${r.fotoUrl}')">
+            <i class="fas fa-image"></i>
+          </button>
         </td>
         <td><span class="text-muted">🔒</span></td>
       </tr>
@@ -934,6 +930,13 @@ async function loadDatabase() {
             }, 1500);
         }
 
+        // Prevenir clic derecho y teclas de desarrollo
+        document.addEventListener('contextmenu', e => e.preventDefault());
+        document.addEventListener('keydown', e => {
+            if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && e.key === 'I')) {
+                e.preventDefault();
+            }
+        });
     </script>
 </body>
 </html>
