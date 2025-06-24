@@ -802,7 +802,7 @@ async function loadDatabase() {
       nombreUtensilio: r.c[4]?.v || '',
       descripcionDano: r.c[5]?.v || '',
       apruebaDano: r.c[6]?.v || '',
-      fotoUrl: r.c[8]?.v?.toString().trim() || ''
+      fotoUrl: r.c[7]?.v?.toString().trim() || ''
     }));
 
     const filtrados = rows.filter(r => {
