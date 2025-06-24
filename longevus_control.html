@@ -712,13 +712,12 @@
 
         
 function formatDate(dateString) {
-    if (!dateString || typeof dateString !== 'string') return 'Fecha inválida';
-
-    const parts = dateString.split('-'); // Divide "2025-06-24" en ["2025", "06", "24"]
-    if (parts.length === 3) {
-        return `<span class="math-inline">\{parts\[2\]\}\-</span>{parts[1]}-${parts[0]}`; // Reordena a "24-06-2025"
-    }
-    return 'Fecha inválida'; // Si el formato no es el esperado
+  if (!dateString || typeof dateString !== 'string') return 'Fecha inválida';
+  const parts = dateString.split('-');
+  if (parts.length === 3 && parts[0].length === 4) {
+    return `${parts[2]}-${parts[1]}-${parts[0]}`;
+  }
+  return 'Fecha inválida';
 }
 
 
@@ -739,7 +738,7 @@ async function submitToGoogleSheets(data) {
       });
 
       try {
-        const res = await fetch('https://script.google.com/macros/s/AKfycbzOIzDEqoklHHLxdA-po8YqHVys4Sume27uhHblI3aqlNQB2v7xhm6Hkyy9QxXFTHs/exec', {  
+        const res = await fetch('https://script.google.com/macros/s/AKfycbw1RlZaLKwET8uDhbA44h-6TOihLqapdTSe7UFw_GO1qVsmOITSRlkaTNLqPNqhIHpF/exec', {  
           method: 'POST',
           body
         });
@@ -784,12 +783,11 @@ async function loadDatabase() {
       let fotoUrl = '';
 
       // Convertimos a URL visible
-      const driveFileIdMatch = rawUrl.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
-      if (driveFileIdMatch && driveFileIdMatch[1]) {
-          fotoUrl = `https://drive.google.com/uc?export=view&id=${driveFileIdMatch[1]}`;
+      const match = rawUrl.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+      if (match && match[1]) {
+        fotoUrl = `https://drive.google.com/uc?export=view&id=${match[1]}`;
       } else if (rawUrl.startsWith('http')) {
-          // Si ya es una URL http directa (como la que tu Apps Script guarda)
-          fotoUrl = rawUrl;
+        fotoUrl = rawUrl;
       }
 
       return {
