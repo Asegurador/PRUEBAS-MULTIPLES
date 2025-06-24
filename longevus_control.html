@@ -780,7 +780,7 @@ async function loadDatabase() {
       let fotoUrl = '';
 
       // Convertimos a URL visible
-      const match = rawUrl.match(/\/file\/d\/([a-zA-Z0-9_-]+)\//);
+      const match = rawUrl.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
       if (match && match[1]) {
         fotoUrl = `https://drive.google.com/uc?export=view&id=${match[1]}`;
       } else if (rawUrl.startsWith('http')) {
@@ -840,7 +840,17 @@ async function loadDatabase() {
 
 
         function formatDate(dateString) {
+            if (!dateString || typeof dateString !== 'string') return 'Fecha inválida';
+
+            // Detecta y convierte formato yyyy-mm-dd → dd-mm-yyyy
+            const match = dateString.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+            if (match) {
+                return `${match[3]}-${match[2]}-${match[1]}`;
+            }
+
             const date = new Date(dateString);
+            if (isNaN(date)) return 'Fecha inválida';
+
             return date.toLocaleDateString('es-ES', {
                 day: '2-digit',
                 month: '2-digit',
