@@ -712,32 +712,44 @@
             return true;
         }
 
-        function submitToGoogleSheets(data) {
-            return new Promise((resolve, reject) => {
-                // Simular envío exitoso
-                // En implementación real, aquí iría la lógica de Google Sheets API
+        async function submitToGoogleSheets(data) {
+  const reader = new FileReader();
+  return new Promise((resolve, reject) => {
+    reader.onload = async function () {
+      const base64 = reader.result.split(',')[1]; // sin encabezado
+      const body = new URLSearchParams({
+        fecha: data.fecha,
+        responsable: data.responsable,
+        tipoUtensilio: data.tipoUtensilio,
+        nombreUtensilio: data.nombreUtensilio,
+        descripcion: data.descripcionDano,
+        aprueba: data.apruebaDano,
+        foto_base64: base64,
+        foto_tipo: data.foto.type
+      });
 
-                // Generar URL ficticia para la foto
-                const photoUrl = `${GOOGLE_DRIVE_FOLDER}/photo_${Date.now()}.jpg`;
-
-                // Agregar a almacenamiento local para demostración
-                let records = JSON.parse(sessionStorage.getItem('utensilios') || '[]');
-                records.push({
-                    id: Date.now(),
-                    fecha: data.fecha,
-                    responsable: data.responsable,
-                    tipoUtensilio: data.tipoUtensilio,
-                    nombreUtensilio: data.nombreUtensilio,
-                    descripcionDano: data.descripcionDano,
-                    apruebaDano: data.apruebaDano,
-                    fotoUrl: photoUrl,
-                    timestamp: data.timestamp
-                });
-                sessionStorage.setItem('utensilios', JSON.stringify(records));
-
-                resolve();
-            });
+      try {
+        const res = await fetch('https://script.google.com/macros/s/AKfycbxw_DtkL761aSH4NYkQSFwSCyQokYx26c8UmC905Spze2Ic_-IjWYrDpAIieHMFxsqD/exec', {
+          method: 'POST',
+          body
+        });
+        const json = await res.json();
+        if (json.success) {
+          console.log('Subido exitosamente');
+          resolve(json);
+        } else {
+          reject(new Error(json.error));
         }
+      } catch (e) {
+        reject(e);
+      }
+    };
+
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(data.foto);
+  });
+}
+
 
         ['filtroMes', 'filtroTipo', 'filtroEstado', 'filtroAprobacion'].forEach(id => {
             document.getElementById(id).addEventListener('change', loadDatabase);
@@ -900,32 +912,6 @@
             }
         });
 
-        // Agregar datos de ejemplo al cargar por primera vez
-        if (!sessionStorage.getItem('utensilios')) {
-            const ejemplos = [
-                {
-                    id: 1,
-                    fecha: '2024-06-20',
-                    responsable: 'María García',
-                    tipoUtensilio: 'Sartén',
-                    nombreUtensilio: 'Sartén Antiadherente Grande',
-                    descripcionDano: 'Recubrimiento antiadherente dañado, se pegan los alimentos',
-                    apruebaDano: 'Sí',
-                    fotoUrl: 'https://drive.google.com/uc?id=ejemplo1',
-                    timestamp: '2024-06-20T10:30:00Z'
-                },
-                {
-                    id: 2,
-                    fecha: '2024-06-22',
-                    responsable: 'Carlos López',
-                    tipoUtensilio: 'Cuchillo',
-                    nombreUtensilio: 'Cuchillo Chef 8 pulgadas',
-                    descripcionDano: 'Hoja desafilada, mango suelto',
-                    apruebaDano: 'Pendiente',
-                    fotoUrl: 'https://drive.google.com/uc?id=ejemplo2',
-                    timestamp: '2024-06-22T14:15:00Z'
-                }
-            ];
             sessionStorage.setItem('utensilios', JSON.stringify(ejemplos));
         }
     </script>
