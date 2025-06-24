@@ -789,8 +789,8 @@ async function loadDatabase() {
     }));
 
     const filtrados = rows.filter(r => {
-      const fecha = new Date(r.fecha);
-      const mesActual = (fecha.getMonth() + 1).toString().padStart(2, '0');
+      const [yyyy, mm] = r.fecha.split('-');
+      const mesActual = mm;
       const estadoActual = getStatusBadge(r.descripcionDano).match(/>(.*?)</)?.[1];
       const aprobacionActual = r.apruebaDano;
 
