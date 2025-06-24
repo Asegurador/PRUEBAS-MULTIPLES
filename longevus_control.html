@@ -530,20 +530,21 @@
         <i class="fas fa-plus fa-lg"></i>
     </button>
 
-    <!-- Modal para ver foto -->
-    <div class="modal fade" id="photoModal" tabindex="-1">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Foto del Utensilio</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body text-center">
-                    <img id="modalPhoto" class="img-fluid rounded" alt="Foto del utensilio">
-                </div>
-            </div>
-        </div>
+    <!-- Modal de Imagen -->
+<div class="modal fade" id="modalFoto" tabindex="-1" aria-labelledby="modalFotoLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content bg-dark text-white">
+      <div class="modal-header border-0">
+        <h5 class="modal-title" id="modalFotoLabel">Vista de la Foto</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body text-center">
+        <img id="imagenModal" src="" alt="Foto utensilio" class="img-fluid rounded shadow" style="max-height: 500px;">
+      </div>
     </div>
+  </div>
+</div>
+
 
     <!-- Bootstrap JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
@@ -831,10 +832,12 @@ async function loadDatabase() {
         <td>${getStatusBadge(r.descripcionDano)}</td>
         <td>${getApprovalBadge(r.apruebaDano)}</td>
         <td>
-          <button class="btn btn-sm btn-outline-primary" onclick="showPhoto('${r.fotoUrl}')">
-            <i class="fas fa-image"></i>
-          </button>
-        </td>
+  ${record.fotoUrl ? `
+    <button class="btn btn-sm btn-outline-primary" onclick="showPhoto('${record.fotoUrl}')">
+      <i class="fas fa-image"></i> Ver Foto
+    </button>` : '<span class="text-muted">Sin Foto</span>'}
+</td>
+
         <td><span class="text-muted">🔒</span></td>
       </tr>
     `).join('');
