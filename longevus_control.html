@@ -844,7 +844,7 @@
                         <td>${getApprovalBadge(r.apruebaDano)}</td>
                         <td>
                             ${r.fotoUrl ? `
-                                <button class="btn btn-sm btn-outline-primary" onclick="showPhoto('${r.fotoUrl.replace(/'/g, "\\'")}')">
+                                <button class="btn btn-sm btn-outline-primary" onclick="showPhoto(decodeURIComponent('${encodeURIComponent(r.fotoUrl)}'))">
                                     <i class="fas fa-image me-1"></i> Ver Foto
                                 </button>` : '<span class="text-muted">Sin Foto</span>'}
                         </td>
@@ -859,16 +859,22 @@
 
         // FUNCION AJUSTADA PARA EL FORMATO DE FECHA
         function formatDate(dateString) {
-            if (!dateString || typeof dateString !== 'string' || dateString.length !== 10) {
-                return 'Fecha inválida';
+            if (!dateString || typeof dateString !== 'string') return 'Fecha inválida';
+
+            const parts = dateString.split('-');
+    
+            if (parts.length === 3) {
+                // Si el primer valor tiene 4 dígitos → YYYY-MM-DD
+                if (parts[0].length === 4) {
+                    return `${parts[2]}-${parts[1]}-${parts[0]}`; // DD-MM-YYYY
+                }
+
+                // Si el primer valor tiene 2 dígitos → ya está en DD-MM-YYYY
+                if (parts[0].length === 2) {
+                    return dateString;
+                }
             }
 
-            // Asume dateString está en formato YYYY-MM-DD
-            const parts = dateString.split('-');
-            if (parts.length === 3 && parts[0].length === 4 && parts[1].length === 2 && parts[2].length === 2) {
-                // Reordena a DD-MM-YYYY
-                return `${parts[2]}-${parts[1]}-${parts[0]}`;
-            }
             return 'Fecha inválida';
         }
 
