@@ -531,7 +531,7 @@
     </button>
 
     <!-- Modal para ver foto -->
-    <div class="modal fade" id="photoModal" tabindex="-1">
+   <div class="modal fade" id="photoModal" tabindex="-1">
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
       <div class="modal-header">
@@ -544,6 +544,7 @@
     </div>
   </div>
 </div>
+
 
 
     <!-- Bootstrap JS -->
@@ -564,7 +565,6 @@
             verificarAutenticacion();
             inicializarSistema();
             setupInactivityTimer();
-            setupBackButtonHandler();
         });
 
         function verificarAutenticacion() {
@@ -613,10 +613,7 @@
             // Iniciar timer
             resetTimer();
         }
-        window.onload = () => {
-            setupBackButtonHandler();
-        }
-
+        
         function showModule(module) {
             // Ocultar todos los módulos
             document.getElementById('homeModule').style.display = 'none';
@@ -782,7 +779,7 @@ async function loadDatabase() {
       let rawUrl = r.c[7]?.v?.toString().trim() || '';
       let fotoUrl = '';
 
-      // Convertir URL de Google Drive en URL visible
+      // Convertimos a URL visible
       const match = rawUrl.match(/\/file\/d\/([a-zA-Z0-9_-]+)\//);
       if (match && match[1]) {
         fotoUrl = `https://drive.google.com/uc?export=view&id=${match[1]}`;
@@ -841,6 +838,7 @@ async function loadDatabase() {
   }
 }
 
+
         function formatDate(dateString) {
             const date = new Date(dateString);
             return date.toLocaleDateString('es-ES', {
@@ -875,9 +873,13 @@ async function loadDatabase() {
         }
 
        function showPhoto(url) {
-         document.getElementById('modalPhoto').src = url;
-         new bootstrap.Modal(document.getElementById('photoModal')).show();
-       }
+  const img = document.getElementById('modalPhoto');
+  img.src = url;
+
+  const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('photoModal'));
+  modal.show();
+}
+
 
         function deleteRecord(id) {
             if (confirm('¿Estás seguro de que quieres eliminar este registro?')) {
