@@ -873,13 +873,12 @@ async function loadDatabase() {
         }
 
        function showPhoto(url) {
-  const img = document.getElementById('modalPhoto');
-  img.src = url;
+         const img = document.getElementById('modalPhoto');
+         img.src = url;
 
-  const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('photoModal'));
-  modal.show();
-}
-
+         const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('photoModal'));
+         modal.show();
+       }
 
         function deleteRecord(id) {
             if (confirm('¿Estás seguro de que quieres eliminar este registro?')) {
