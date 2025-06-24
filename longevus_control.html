@@ -1,0 +1,933 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Longevus - Sistema de Gestión</title>
+
+    <!-- Bootstrap 5 -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+
+    <style>
+        :root {
+            --primary-color: #2fa35f;
+            --secondary-color: #04b330;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --dark-color: #1f2937;
+            --light-color: #f8fafc;
+        }
+
+        * {
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f59e0b, #1f2937, #04b330 80%, #10b981, #ef4444);
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        .navbar {
+            background: rgba(255, 255, 255, 0.1) !important;
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: white !important;
+        }
+
+        .navbar-nav .nav-link {
+            color: rgba(255, 255, 255, 0.9) !important;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .navbar-nav .nav-link:hover {
+            color: white !important;
+            transform: translateY(-2px);
+        }
+
+        .container-fluid {
+            padding: 2rem;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            border: none;
+            border-radius: 25px;
+            padding: 10px 25px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, var(--success-color) 0%, #059669 100%);
+            border: none;
+            border-radius: 25px;
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, var(--warning-color) 0%, #d97706 100%);
+            border: none;
+            border-radius: 25px;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, var(--danger-color) 0%, #dc2626 100%);
+            border: none;
+            border-radius: 25px;
+        }
+
+        .form-control,
+        .form-select {
+            border-radius: 15px;
+            border: 2px solid #e5e7eb;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus,
+        .form-select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+
+        .module-card {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .module-card:hover {
+            transform: scale(1.05);
+        }
+
+        .module-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .user-info {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            padding: 0.5rem 1rem;
+            color: white;
+        }
+
+        .table {
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .table th {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            border: none;
+            font-weight: 600;
+        }
+
+        .status-badge {
+            white-space: nowrap;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.75rem;
+            line-height: 1;
+            display: inline-block;
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .status-damaged {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger-color);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .status-expired {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning-color);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+
+        .status-soon {
+            background: rgba(59, 130, 246, 0.1);
+            color: #3b82f6;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+
+        .floating-btn {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            z-index: 1000;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .slide-in {
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(-100%);
+            }
+
+            to {
+                transform: translateX(0);
+            }
+        }
+
+        .photo-preview {
+            max-width: 100px;
+            max-height: 100px;
+            object-fit: cover;
+            border-radius: 10px;
+            border: 2px solid #e5e7eb;
+        }
+
+        @media (max-width: 768px) {
+            .container-fluid {
+                padding: 1rem;
+            }
+
+            .floating-btn {
+                bottom: 1rem;
+                right: 1rem;
+                width: 50px;
+                height: 50px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#"><i class="fas fa-utensils me-2"></i>Longevus</a>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#" onclick="showModule('home')">
+                            <i class="fas fa-home me-1"></i>Inicio
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" onclick="showModule('register')">
+                            <i class="fas fa-plus-circle me-1"></i>Registrar
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" onclick="showModule('database')">
+                            <i class="fas fa-database me-1"></i>Base de Datos
+                        </a>
+                    </li>
+                </ul>
+
+                <div class="d-flex align-items-center">
+                    <div class="user-info me-3">
+                        <i class="fas fa-user me-2"></i>
+                        <span id="currentUser">Usuario</span>
+                    </div>
+                    <button class="btn btn-outline-light btn-sm" onclick="cerrarSesion()">
+                        <i class="fas fa-sign-out-alt me-1"></i>Salir
+                    </button>
+                    &nbsp;&nbsp;&nbsp;&nbsp;
+                    <button class="btn btn-outline-light btn-sm" onclick="paginaPrincipal()">
+                        <i class="fas fa-sign-out-alt me-1"></i>Pagina Principal
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container-fluid">
+        <!-- Home Module -->
+        <div id="homeModule" class="fade-in">
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card text-center p-4">
+                        <h1 class="mb-3">🍴 Sistema Longevus</h1>
+                        <p class="lead">Gestión Profesional de Utensilios de Cocina</p>
+                        <hr>
+                        <p class="text-muted">Controla el estado de tus utensilios: caducados, dañados y próximos a
+                            dañarse</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-4">
+                <div class="col-md-6">
+                    <div class="card module-card text-center p-4" onclick="showModule('register')">
+                        <div class="module-icon">
+                            <i class="fas fa-plus-circle"></i>
+                        </div>
+                        <h4>Registrar Utensilio</h4>
+                        <p class="text-muted">Registra nuevos utensilios dañados o próximos a dañarse</p>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card module-card text-center p-4" onclick="showModule('database')">
+                        <div class="module-icon">
+                            <i class="fas fa-database"></i>
+                        </div>
+                        <h4>Base de Datos</h4>
+                        <p class="text-muted">Consulta y gestiona todos los utensilios registrados</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Register Module -->
+        <div id="registerModule" style="display: none;" class="fade-in">
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
+                    <div class="card p-4">
+                        <div class="card-header bg-transparent border-0">
+                            <h3 class="text-center mb-0">
+                                <i class="fas fa-plus-circle me-2"></i>Registrar Utensilio
+                            </h3>
+                        </div>
+                        <div class="card-body">
+                            <form id="registerForm">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label"><i class="fas fa-calendar me-2"></i>Fecha</label>
+                                        <input type="date" class="form-control" id="fecha" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label"><i class="fas fa-user me-2"></i>Responsable</label>
+                                        <select class="form-select" id="responsable" required>
+                                            <option value="">Seleccionar un Responsable...</option>
+                                            <option value="Zuleima Ortiz">Zuleima Ortiz</option>
+                                            <option value="Joel Pineda">Joel Pineda</option>
+                                            <option value="Rosana Rodriguez">Rosana Rodriguez</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label"><i class="fas fa-list me-2"></i>Tipo de
+                                            Utensilio</label>
+                                        <select class="form-select" id="tipoUtensilio" required>
+                                            <option value="">Seleccionar un tipo...</option>
+                                            <option value="Cuchillo">Cuchillo</option>
+                                            <option value="Sartén">Sartén</option>
+                                            <option value="Olla">Olla</option>
+                                            <option value="Cuchara">Cuchara</option>
+                                            <option value="Tenedor">Tenedor</option>
+                                            <option value="Plato">Plato</option>
+                                            <option value="Vaso">Vaso</option>
+                                            <option value="Taza">Taza</option>
+                                            <option value="Batidora">Batidora</option>
+                                            <option value="Licuadora">Licuadora</option>
+                                            <option value="Otro">Otro</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label"><i class="fas fa-tag me-2"></i>Nombre del
+                                            Utensilio</label>
+                                        <input type="text" class="form-control" id="nombreUtensilio"
+                                            placeholder="Nombre específico" required>
+                                    </div>
+                                    <div class="col-12">
+                                        <label class="form-label"><i
+                                                class="fas fa-exclamation-triangle me-2"></i>Descripción del
+                                            Daño</label>
+                                        <textarea class="form-control" id="descripcionDano" rows="3"
+                                            placeholder="Describe detalladamente el daño o problema..."
+                                            required></textarea>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label"><i class="fas fa-check-circle me-2"></i>¿Aprueba el
+                                            Daño?</label>
+                                        <select class="form-select" id="apruebaDano" required>
+                                            <option value="">Seleccionar...</option>
+                                            <option value="Sí">Sí</option>
+                                            <option value="Pendiente">Pendiente</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label"><i class="fas fa-camera me-2"></i>Adjuntar
+                                            Foto</label>
+                                        <input type="file" class="form-control" id="foto" accept="image/*" required>
+                                    </div>
+                                    <div class="col-12" id="photoPreview" style="display: none;">
+                                        <img id="previewImg" class="photo-preview" alt="Vista previa">
+                                    </div>
+                                </div>
+                                <div class="text-center mt-4">
+                                    <button type="submit" class="btn btn-primary btn-lg px-5">
+                                        <i class="fas fa-save me-2"></i>Guardar Registro
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Database Module -->
+        <div id="databaseModule" style="display: none;" class="fade-in">
+            <div class="card">
+                <div class="card-header bg-transparent border-0">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h3 class="mb-0">
+                            <i class="fas fa-database me-2"></i>Base de Datos de Utensilios
+                        </h3>
+                        <button class="btn btn-success" onclick="loadDatabase()">
+                            <i class="fas fa-sync-alt me-2"></i>Actualizar
+                        </button>
+                    </div>
+                </div>
+                <!-- AÑADIR FILTROS DE BÚSQUEDA Y RESPONSIVIDAD -->
+                <div class="card-body">
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-3">
+                            <label class="form-label">Mes</label>
+                            <select class="form-select" id="filtroMes">
+                                <option value="">Todos</option>
+                                <option value="01">Enero</option>
+                                <option value="02">Febrero</option>
+                                <option value="03">Marzo</option>
+                                <option value="04">Abril</option>
+                                <option value="05">Mayo</option>
+                                <option value="06">Junio</option>
+                                <option value="07">Julio</option>
+                                <option value="08">Agosto</option>
+                                <option value="09">Septiembre</option>
+                                <option value="10">Octubre</option>
+                                <option value="11">Noviembre</option>
+                                <option value="12">Diciembre</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Tipo de Utensilio</label>
+                            <select class="form-select" id="filtroTipo">
+                                <option value="">Todos</option>
+                                <option value="Cuchillo">Cuchillo</option>
+                                <option value="Sartén">Sartén</option>
+                                <option value="Olla">Olla</option>
+                                <option value="Cuchara">Cuchara</option>
+                                <option value="Tenedor">Tenedor</option>
+                                <option value="Plato">Plato</option>
+                                <option value="Vaso">Vaso</option>
+                                <option value="Taza">Taza</option>
+                                <option value="Batidora">Batidora</option>
+                                <option value="Licuadora">Licuadora</option>
+                                <option value="Otro">Otro</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Estado</label>
+                            <select class="form-select" id="filtroEstado">
+                                <option value="">Todos</option>
+                                <option value="Dañado">Dañado</option>
+                                <option value="Pronto a Dañar">Pronto a Dañar</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Aprobación</label>
+                            <select class="form-select" id="filtroAprobacion">
+                                <option value="">Todos</option>
+                                <option value="Sí">Aprobado</option>
+                                <option value="Pendiente">Pendiente</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Responsable</th>
+                                    <th>Tipo</th>
+                                    <th>Nombre</th>
+                                    <th>Estado</th>
+                                    <th>Aprobación</th>
+                                    <th>Foto</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="databaseTable">
+                                <tr>
+                                    <td colspan="8" class="text-center py-4">
+                                        <div class="spinner-border text-primary" role="status">
+                                            <span class="visually-hidden">Cargando...</span>
+                                        </div>
+                                        <p class="mt-2 text-muted">Cargando datos...</p>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Action Button -->
+    <button class="btn btn-primary floating-btn d-none d-lg-block" onclick="showModule('register')"
+        title="Registrar Utensilio">
+        <i class="fas fa-plus fa-lg"></i>
+    </button>
+
+    <!-- Modal para ver foto -->
+    <div class="modal fade" id="photoModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Foto del Utensilio</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <img id="modalPhoto" class="img-fluid rounded" alt="Foto del utensilio">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // Variables globales
+        let currentModule = 'home';
+        let inactivityTimer;
+        let lastActivity = Date.now();
+
+        // Configuración de Google Sheets y Drive
+        const GOOGLE_SHEETS_URL = 'TU_URL_GOOGLE_SHEETS_AQUI'; // Reemplazar con tu URL
+        const GOOGLE_DRIVE_FOLDER = 'TU_URL_CARPETA_DRIVE_AQUI'; // Reemplazar con tu URL de carpeta
+
+        // Inicialización
+        window.addEventListener('load', function () {
+            verificarAutenticacion();
+            inicializarSistema();
+            setupInactivityTimer();
+            setupBackButtonHandler();
+        });
+
+        function verificarAutenticacion() {
+            if (sessionStorage.getItem('autenticado') !== 'true') {
+                window.location.href = 'index.html';
+                return;
+            }
+
+            const usuario = sessionStorage.getItem('usuario');
+            if (usuario) {
+                document.getElementById('currentUser').textContent = usuario;
+            }
+        }
+
+        function inicializarSistema() {
+            // Establecer fecha actual
+            document.getElementById('fecha').valueAsDate = new Date();
+
+            // Setup de preview de foto
+            document.getElementById('foto').addEventListener('change', handlePhotoPreview);
+
+            // Setup del formulario
+            document.getElementById('registerForm').addEventListener('submit', handleSubmit);
+
+            // Cargar datos iniciales
+            loadDatabase();
+        }
+
+        function setupInactivityTimer() {
+            const INACTIVITY_TIME = 5 * 60 * 1000; // 5 minutos
+
+            function resetTimer() {
+                clearTimeout(inactivityTimer);
+                lastActivity = Date.now();
+                inactivityTimer = setTimeout(() => {
+                    alert('⏰ Sesión expirada por inactividad');
+                    cerrarSesion();
+                }, INACTIVITY_TIME);
+            }
+
+            // Eventos que resetean el timer
+            ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'].forEach(event => {
+                document.addEventListener(event, resetTimer, true);
+            });
+
+            // Iniciar timer
+            resetTimer();
+        }
+        window.onload = () => {
+            setupBackButtonHandler();
+        }
+
+        function showModule(module) {
+            // Ocultar todos los módulos
+            document.getElementById('homeModule').style.display = 'none';
+            document.getElementById('registerModule').style.display = 'none';
+            document.getElementById('databaseModule').style.display = 'none';
+
+            // Mostrar módulo seleccionado
+            document.getElementById(module + 'Module').style.display = 'block';
+
+            // Actualizar navegación
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.classList.remove('active');
+            });
+
+            if (module === 'home') {
+                document.querySelector('.nav-link[href="#"]').classList.add('active');
+            } else if (module === 'register') {
+                document.querySelector('.nav-link[onclick="showModule(\'register\')"]').classList.add('active');
+            } else if (module === 'database') {
+                document.querySelector('.nav-link[onclick="showModule(\'database\')"]').classList.add('active');
+                loadDatabase();
+            }
+
+            currentModule = module;
+        }
+
+        function handlePhotoPreview(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    document.getElementById('previewImg').src = e.target.result;
+                    document.getElementById('photoPreview').style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function handleSubmit(event) {
+            event.preventDefault();
+
+            const formData = {
+                fecha: document.getElementById('fecha').value,
+                responsable: document.getElementById('responsable').value,
+                tipoUtensilio: document.getElementById('tipoUtensilio').value,
+                nombreUtensilio: document.getElementById('nombreUtensilio').value,
+                descripcionDano: document.getElementById('descripcionDano').value,
+                apruebaDano: document.getElementById('apruebaDano').value,
+                foto: document.getElementById('foto').files[0],
+                timestamp: new Date().toISOString()
+            };
+
+            // Validar datos
+            if (!validateForm(formData)) {
+                return;
+            }
+
+            // Mostrar loading
+            const submitBtn = event.target.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Guardando...';
+            submitBtn.disabled = true;
+
+            // Simular envío a Google Sheets
+            setTimeout(() => {
+                submitToGoogleSheets(formData)
+                    .then(() => {
+                        showSuccessMessage('✅ Utensilio registrado exitosamente');
+                        resetForm();
+                        loadDatabase();
+                    })
+                    .catch(error => {
+                        showErrorMessage('❌ Error al guardar: ' + error.message);
+                    })
+                    .finally(() => {
+                        submitBtn.innerHTML = originalText;
+                        submitBtn.disabled = false;
+                    });
+            }, 1500);
+        }
+
+        function validateForm(data) {
+            if (!data.fecha || !data.responsable || !data.tipoUtensilio ||
+                !data.nombreUtensilio || !data.descripcionDano || !data.apruebaDano) {
+                showErrorMessage('❌ Por favor completa todos los campos obligatorios');
+                return false;
+            }
+
+            if (!data.foto) {
+                showErrorMessage('❌ Por favor adjunta una foto del utensilio');
+                return false;
+            }
+
+            return true;
+        }
+
+        function submitToGoogleSheets(data) {
+            return new Promise((resolve, reject) => {
+                // Simular envío exitoso
+                // En implementación real, aquí iría la lógica de Google Sheets API
+
+                // Generar URL ficticia para la foto
+                const photoUrl = `${GOOGLE_DRIVE_FOLDER}/photo_${Date.now()}.jpg`;
+
+                // Agregar a almacenamiento local para demostración
+                let records = JSON.parse(sessionStorage.getItem('utensilios') || '[]');
+                records.push({
+                    id: Date.now(),
+                    fecha: data.fecha,
+                    responsable: data.responsable,
+                    tipoUtensilio: data.tipoUtensilio,
+                    nombreUtensilio: data.nombreUtensilio,
+                    descripcionDano: data.descripcionDano,
+                    apruebaDano: data.apruebaDano,
+                    fotoUrl: photoUrl,
+                    timestamp: data.timestamp
+                });
+                sessionStorage.setItem('utensilios', JSON.stringify(records));
+
+                resolve();
+            });
+        }
+
+        ['filtroMes', 'filtroTipo', 'filtroEstado', 'filtroAprobacion'].forEach(id => {
+            document.getElementById(id).addEventListener('change', loadDatabase);
+        });
+
+        function loadDatabase() {
+            const tableBody = document.getElementById('databaseTable');
+            const records = JSON.parse(sessionStorage.getItem('utensilios') || '[]');
+
+            const mes = document.getElementById('filtroMes').value;
+            const tipo = document.getElementById('filtroTipo').value;
+            const estado = document.getElementById('filtroEstado').value;
+            const aprobacion = document.getElementById('filtroAprobacion').value;
+
+            const filtrados = records.filter(r => {
+                const fecha = new Date(r.fecha);
+                const mesActual = (fecha.getMonth() + 1).toString().padStart(2, '0');
+                const estadoActual = getStatusBadge(r.descripcionDano).match(/>(.*?)</)?.[1];
+                const aprobacionActual = r.apruebaDano;
+
+                return (!mes || mes === mesActual) &&
+                    (!tipo || tipo === r.tipoUtensilio) &&
+                    (!estado || estado === estadoActual) &&
+                    (!aprobacion || aprobacion === aprobacionActual);
+            });
+
+            if (filtrados.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="8" class="text-center py-4">No hay resultados</td></tr>`;
+                return;
+            }
+
+            tableBody.innerHTML = filtrados.map(record => `
+    <tr>
+      <td>${formatDate(record.fecha)}</td>
+      <td>${record.responsable}</td>
+      <td><span class="badge bg-info">${record.tipoUtensilio}</span></td>
+      <td>${record.nombreUtensilio}</td>
+      <td>${getStatusBadge(record.descripcionDano)}</td>
+      <td>${getApprovalBadge(record.apruebaDano)}</td>
+      <td>
+        <button class="btn btn-sm btn-outline-primary" onclick="showPhoto('${record.fotoUrl}')">
+          <i class="fas fa-image"></i>
+        </button>
+      </td>
+      <td>
+        <button class="btn btn-sm btn-outline-danger" onclick="deleteRecord(${record.id})">
+          <i class="fas fa-trash"></i>
+        </button>
+      </td>
+    </tr>`).join('');
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('es-ES', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
+            });
+        }
+
+        function getStatusBadge(descripcion) {
+            const desc = descripcion.toLowerCase();
+            if (desc.includes('dañado') || desc.includes('roto') || desc.includes('quebrado')
+                || desc.includes('partido') || desc.includes('no sirve') || desc.includes('sirve')
+                || desc.includes('caduc') || desc.includes('vencido') || desc.includes('expirado')) {
+                return '<span class="status-badge status-damaged">Dañado</span>';
+            } else {
+                return '<span class="status-badge status-soon">Pronto a Dañar</span>';
+            }
+        }
+
+        function getApprovalBadge(aprobacion) {
+            switch (aprobacion) {
+                case 'Sí':
+                    return '<span class="badge bg-success">Aprobado</span>';
+                case 'No':
+                    return '<span class="badge bg-danger">Rechazado</span>';
+                case 'Pendiente':
+                    return '<span class="badge bg-warning">Pendiente</span>';
+                default:
+                    return '<span class="badge bg-secondary">N/A</span>';
+            }
+        }
+
+        function showPhoto(url) {
+            document.getElementById('modalPhoto').src = url;
+            new bootstrap.Modal(document.getElementById('photoModal')).show();
+        }
+
+        function deleteRecord(id) {
+            if (confirm('¿Estás seguro de que quieres eliminar este registro?')) {
+                let records = JSON.parse(sessionStorage.getItem('utensilios') || '[]');
+                records = records.filter(record => record.id !== id);
+                sessionStorage.setItem('utensilios', JSON.stringify(records));
+                loadDatabase();
+                showSuccessMessage('✅ Registro eliminado exitosamente');
+            }
+        }
+
+        function resetForm() {
+            document.getElementById('registerForm').reset();
+            document.getElementById('fecha').valueAsDate = new Date();
+            document.getElementById('photoPreview').style.display = 'none';
+        }
+
+        function showSuccessMessage(message) {
+            const toast = createToast(message, 'success');
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        function showErrorMessage(message) {
+            const toast = createToast(message, 'danger');
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 5000);
+        }
+
+        function createToast(message, type) {
+            const toast = document.createElement('div');
+            toast.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+            toast.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+            toast.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            return toast;
+        }
+
+        function cerrarSesion() {
+            // Limpiar sesión
+            sessionStorage.clear();
+
+            // Mostrar mensaje de despedida
+            const overlay = document.createElement('div');
+            overlay.style.cssText = `
+                position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+                background: rgba(0,0,0,0.8); z-index: 9999;
+                display: flex; justify-content: center; align-items: center;
+                color: white; font-size: 1.5rem; text-align: center;
+            `;
+            overlay.innerHTML = `
+                <div>
+                    <i class="fas fa-sign-out-alt fa-3x mb-3"></i>
+                    <p>Cerrando sesión...</p>
+                </div>
+            `;
+            document.body.appendChild(overlay);
+
+            setTimeout(() => {
+                window.location.href = 'longevus_login.html';
+            }, 1500);
+        }
+
+        // Prevenir clic derecho y teclas de desarrollo
+        document.addEventListener('contextmenu', e => e.preventDefault());
+        document.addEventListener('keydown', e => {
+            if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && e.key === 'I')) {
+                e.preventDefault();
+            }
+        });
+
+        // Agregar datos de ejemplo al cargar por primera vez
+        if (!sessionStorage.getItem('utensilios')) {
+            const ejemplos = [
+                {
+                    id: 1,
+                    fecha: '2024-06-20',
+                    responsable: 'María García',
+                    tipoUtensilio: 'Sartén',
+                    nombreUtensilio: 'Sartén Antiadherente Grande',
+                    descripcionDano: 'Recubrimiento antiadherente dañado, se pegan los alimentos',
+                    apruebaDano: 'Sí',
+                    fotoUrl: 'https://drive.google.com/uc?id=ejemplo1',
+                    timestamp: '2024-06-20T10:30:00Z'
+                },
+                {
+                    id: 2,
+                    fecha: '2024-06-22',
+                    responsable: 'Carlos López',
+                    tipoUtensilio: 'Cuchillo',
+                    nombreUtensilio: 'Cuchillo Chef 8 pulgadas',
+                    descripcionDano: 'Hoja desafilada, mango suelto',
+                    apruebaDano: 'Pendiente',
+                    fotoUrl: 'https://drive.google.com/uc?id=ejemplo2',
+                    timestamp: '2024-06-22T14:15:00Z'
+                }
+            ];
+            sessionStorage.setItem('utensilios', JSON.stringify(ejemplos));
+        }
+    </script>
+</body>
+</html>
