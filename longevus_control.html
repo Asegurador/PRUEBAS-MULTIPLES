@@ -7,7 +7,6 @@
     <title>Longevus - Sistema de Gestión</title>
     <link rel="icon" type="image/png" href="https://png.pngtree.com/png-clipart/20230810/original/pngtree-cartoon-art-logo-icon-of-a-master-chef-character-with-kitchen-utensils-vector-picture-image_10231625.png">
 
-    <!-- Bootstrap 5 -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"rel="stylesheet">
@@ -254,7 +253,6 @@
 </head>
 
 <body>
-    <!-- Navbar -->
     <nav class="navbar navbar-expand-lg navbar-dark">
         <div class="container-fluid">
             <a class="navbar-brand" href="#"><i class="fas fa-utensils me-2"></i>Longevus</a>
@@ -299,9 +297,7 @@
         </div>
     </nav>
 
-    <!-- Main Content -->
     <div class="container-fluid">
-        <!-- Home Module -->
         <div id="homeModule" class="fade-in">
             <div class="row mb-4">
                 <div class="col-12">
@@ -337,7 +333,6 @@
             </div>
         </div>
 
-        <!-- Register Module -->
         <div id="registerModule" style="display: none;" class="fade-in">
             <div class="row justify-content-center">
                 <div class="col-lg-8">
@@ -425,7 +420,6 @@
             </div>
         </div>
 
-        <!-- Database Module -->
         <div id="databaseModule" style="display: none;" class="fade-in">
             <div class="card">
                 <div class="card-header bg-transparent border-0">
@@ -438,7 +432,6 @@
                         </button>
                     </div>
                 </div>
-                <!-- AÑADIR FILTROS DE BÚSQUEDA Y RESPONSIVIDAD -->
                 <div class="card-body">
                     <div class="row g-3 mb-3">
                         <div class="col-md-3">
@@ -524,14 +517,12 @@
         </div>
     </div>
 
-    <!-- Floating Action Button -->
     <button class="btn btn-primary floating-btn d-none d-lg-block" onclick="showModule('register')"
         title="Registrar Utensilio">
         <i class="fas fa-plus fa-lg"></i>
     </button>
 
-    <!-- Modal para ver foto -->
-   <div class="modal fade" id="photoModal" tabindex="-1">
+    <div class="modal fade" id="photoModal" tabindex="-1">
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
       <div class="modal-header">
@@ -547,7 +538,6 @@
 
 
 
-    <!-- Bootstrap JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
 
     <script>
@@ -559,6 +549,9 @@
         // Configuración de Google Sheets y Drive
         const GOOGLE_SHEETS_URL = 'https://docs.google.com/spreadsheets/d/1J5TOdUkJGWfvxzemzolU8i1AAoEAqbTiF8cOdaXrnG8/edit?usp=sharing'; // Tu URL
         const GOOGLE_DRIVE_FOLDER = 'https://drive.google.com/drive/folders/1-eloGjWFm3JCFwGn5DdBqoPZTLXOan0x?usp=drive_link'; // Tu URL de carpeta
+        // URL de tu Apps Script para envío de datos. ¡ACTUALIZADA con la que me proporcionaste!
+        const APPS_SCRIPT_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzOIzDEqoklHHLxdA-po8YqHVys4Sume27uhHblI3aqlNQB2v7xhm6Hkyy9QxXFTHs/exec';
+
 
         // Inicialización
         window.addEventListener('load', function () {
@@ -578,6 +571,11 @@
                 document.getElementById('currentUser').textContent = usuario;
             }
         }
+        
+        function paginaPrincipal() {
+            window.location.href = 'index.html';
+        }
+
 
         function inicializarSistema() {
             // Establecer fecha actual
@@ -634,7 +632,7 @@
                 document.querySelector('.nav-link[onclick="showModule(\'register\')"]').classList.add('active');
             } else if (module === 'database') {
                 document.querySelector('.nav-link[onclick="showModule(\'database\')"]').classList.add('active');
-                loadDatabase();
+                loadDatabase(); // Recarga la base de datos cada vez que se muestra
             }
 
             currentModule = module;
@@ -677,22 +675,19 @@
             submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Guardando...';
             submitBtn.disabled = true;
 
-            // Simular envío a Google Sheets
-            setTimeout(() => {
-                submitToGoogleSheets(formData)
-                    .then(() => {
-                        showSuccessMessage('✅ Utensilio registrado exitosamente');
-                        resetForm();
-                        loadDatabase();
-                    })
-                    .catch(error => {
-                        showErrorMessage('❌ Error al guardar: ' + error.message);
-                    })
-                    .finally(() => {
-                        submitBtn.innerHTML = originalText;
-                        submitBtn.disabled = false;
-                    });
-            }, 1500);
+            submitToGoogleSheets(formData)
+                .then(() => {
+                    showSuccessMessage('✅ Utensilio registrado exitosamente');
+                    resetForm();
+                })
+                .catch(error => {
+                    console.error('Error en handleSubmit:', error);
+                    showErrorMessage('❌ Error al guardar: ' + (error.message || 'Error desconocido'));
+                })
+                .finally(() => {
+                    submitBtn.innerHTML = originalText;
+                    submitBtn.disabled = false;
+                });
         }
 
         function validateForm(data) {
@@ -711,161 +706,177 @@
         }
 
         
-function formatDate(dateString) {
-  if (!dateString || typeof dateString !== 'string') return 'Fecha inválida';
-  const parts = dateString.split('-');
-  if (parts.length === 3 && parts[0].length === 4) {
-    return `${parts[2]}-${parts[1]}-${parts[0]}`;
-  }
-  return 'Fecha inválida';
-}
+        async function submitToGoogleSheets(data) {
+            const reader = new FileReader();
+            return new Promise((resolve, reject) => {
+                reader.onload = async function () {
+                    const base64 = reader.result.split(',')[1];
+                    
+                    const formData = new URLSearchParams();
+                    formData.append('fecha', data.fecha);
+                    formData.append('responsable', data.responsable);
+                    formData.append('tipoUtensilio', data.tipoUtensilio);
+                    formData.append('nombreUtensilio', data.nombreUtensilio);
+                    formData.append('descripcion', data.descripcionDano);
+                    formData.append('aprueba', data.apruebaDano);
+                    formData.append('foto_base64', base64);
+                    formData.append('foto_tipo', data.foto.type);
 
+                    try {
+                        const res = await fetch(APPS_SCRIPT_WEB_APP_URL, { // Usa la constante global
+                            method: 'POST',
+                            body: formData
+                        });
+                        const json = await res.json();
+                        if (json.success) {
+                            console.log('Subido exitosamente', json);
+                            resolve(json);
+                        } else {
+                            reject(new Error(json.error || 'Error desconocido en el Apps Script'));
+                        }
+                    } catch (e) {
+                        console.error('Error en la llamada a fetch del Apps Script:', e);
+                        reject(new Error('No se pudo conectar con el servidor de registro. Intente de nuevo.'));
+                    }
+                };
 
-async function submitToGoogleSheets(data) {
-  const reader = new FileReader();
-  return new Promise((resolve, reject) => {
-    reader.onload = async function () {
-      const base64 = reader.result.split(',')[1]; // sin encabezado
-      const body = new URLSearchParams({
-        fecha: data.fecha,
-        responsable: data.responsable,
-        tipoUtensilio: data.tipoUtensilio,
-        nombreUtensilio: data.nombreUtensilio,
-        descripcion: data.descripcionDano,
-        aprueba: data.apruebaDano,
-        foto_base64: base64,
-        foto_tipo: data.foto.type
-      });
-
-      try {
-        const res = await fetch('https://script.google.com/macros/s/AKfycbw1RlZaLKwET8uDhbA44h-6TOihLqapdTSe7UFw_GO1qVsmOITSRlkaTNLqPNqhIHpF/exec', {  
-          method: 'POST',
-          body
-        });
-        const json = await res.json();
-        if (json.success) {
-          console.log('Subido exitosamente');
-          resolve(json);
-        } else {
-          reject(new Error(json.error));
+                reader.onerror = () => reject(reader.error);
+                reader.readAsDataURL(data.foto);
+            });
         }
-      } catch (e) {
-        reject(e);
-      }
-    };
-
-    reader.onerror = () => reject(reader.error);
-    reader.readAsDataURL(data.foto);
-  });
-}
 
 
         ['filtroMes', 'filtroTipo', 'filtroEstado', 'filtroAprobacion'].forEach(id => {
             document.getElementById(id).addEventListener('change', loadDatabase);
         });
 
-async function loadDatabase() {
-  const tableBody = document.getElementById('databaseTable');
-  tableBody.innerHTML = `<tr><td colspan="8" class="text-center py-4">Cargando...</td></tr>`;
+        // FUNCION AJUSTADA PARA CARGAR DATOS Y MOSTRAR FOTOS/FECHAS CORRECTAMENTE
+        async function loadDatabase() {
+            const tableBody = document.getElementById('databaseTable');
+            tableBody.innerHTML = `<tr><td colspan="8" class="text-center py-4">Cargando...</td></tr>`;
 
-  const mes = document.getElementById('filtroMes').value;
-  const tipo = document.getElementById('filtroTipo').value;
-  const estado = document.getElementById('filtroEstado').value;
-  const aprobacion = document.getElementById('filtroAprobacion').value;
+            const mes = document.getElementById('filtroMes').value;
+            const tipo = document.getElementById('filtroTipo').value;
+            const estado = document.getElementById('filtroEstado').value;
+            const aprobacion = document.getElementById('filtroAprobacion').value;
 
-  try {
-    const res = await fetch("https://docs.google.com/spreadsheets/d/1J5TOdUkJGWfvxzemzolU8i1AAoEAqbTiF8cOdaXrnG8/gviz/tq?tqx=out:json&sheet=Utensilios");
-    const text = await res.text();
-    const json = JSON.parse(text.substring(47).slice(0, -2));
+            try {
+                // Se usa la URL gviz/tq para obtener los datos de la hoja de cálculo
+                // El parámetro 'sheet' debe coincidir con el nombre de tu pestaña en Google Sheets
+                const sheetId = GOOGLE_SHEETS_URL.match(/\/d\/(.*?)\//)[1]; // Extrae el ID de la URL
+                const gvizUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&sheet=Utensilios`;
+                
+                const response = await fetch(gvizUrl);
+                const text = await response.text();
+                
+                // --- PARSING DEL JSONP MEJORADO ---
+                // Busca el inicio y fin del objeto JSON dentro de la respuesta
+                const jsonStart = text.indexOf('{');
+                const jsonEnd = text.lastIndexOf('}');
+                let json;
+                if (jsonStart !== -1 && jsonEnd !== -1) {
+                    const jsonString = text.substring(jsonStart, jsonEnd + 1);
+                    json = JSON.parse(jsonString);
+                } else {
+                    throw new Error('No se pudo parsear la respuesta JSON de Google Sheets.');
+                }
+                // --- FIN PARSING DEL JSONP MEJORADO ---
 
-    const rows = json.table.rows.map(r => {
-      let rawUrl = r.c[7]?.v?.toString().trim() || '';
-      let fotoUrl = '';
+                const rows = json.table.rows.map(r => {
+                    // r.c[index] contiene el objeto de celda. .v es el valor, .f es el valor formateado (si existe)
+                    // Asegúrate de que los índices coincidan con tus columnas en Google Sheet (0-based)
+                    // Columna 1 (ID - no mostrada)
+                    // Columna 2 (Fecha) -> index 1
+                    // Columna 3 (Responsable) -> index 2
+                    // Columna 4 (Tipo de Utensilio) -> index 3
+                    // Columna 5 (Nombre Utensilio) -> index 4
+                    // Columna 6 (Descripción Daño) -> index 5
+                    // Columna 7 (Aprueba Daño) -> index 6
+                    // Columna 8 (URL Foto) -> index 7
 
-      // Convertimos a URL visible
-      const match = rawUrl.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
-      if (match && match[1]) {
-        fotoUrl = `https://drive.google.com/uc?export=view&id=${match[1]}`;
-      } else if (rawUrl.startsWith('http')) {
-        fotoUrl = rawUrl;
-      }
+                    let rawDate = r.c[1]?.v || ''; // Fecha en formato YYYY-MM-DD
+                    let fotoUrl = r.c[7]?.v || ''; // URL de la foto tal cual la guarda Apps Script
 
-      return {
-        fecha: r.c[1]?.v || '',
-        responsable: r.c[2]?.v || '',
-        tipoUtensilio: r.c[3]?.v || '',
-        nombreUtensilio: r.c[4]?.v || '',
-        descripcionDano: r.c[5]?.v || '',
-        apruebaDano: r.c[6]?.v || '',
-        fotoUrl: fotoUrl
-      };
-    });
+                    return {
+                        fecha: rawDate,
+                        responsable: r.c[2]?.v || '',
+                        tipoUtensilio: r.c[3]?.v || '',
+                        nombreUtensilio: r.c[4]?.v || '',
+                        descripcionDano: r.c[5]?.v || '',
+                        apruebaDano: r.c[6]?.v || '',
+                        fotoUrl: fotoUrl // Usamos la URL directamente del Apps Script
+                    };
+                });
 
-    const filtrados = rows.filter(r => {
-      const [yyyy, mm] = r.fecha.split('-');
-      const mesActual = mm;
-      const estadoActual = getStatusBadge(r.descripcionDano).match(/>(.*?)</)?.[1];
-      const aprobacionActual = r.apruebaDano;
+                const filtrados = rows.filter(r => {
+                    // Si r.fecha es "Fecha inválida", no podemos dividirla
+                    if (r.fecha === 'Fecha inválida' || !r.fecha) return false;
 
-      return (!mes || mes === mesActual) &&
-             (!tipo || tipo === r.tipoUtensilio) &&
-             (!estado || estado === estadoActual) &&
-             (!aprobacion || aprobacion === aprobacionActual);
-    });
+                    const [yyyy, mm] = r.fecha.split('-'); // Extrae el mes del formato YYYY-MM-DD
+                    const mesActual = mm;
+                    
+                    // Asegura que el estado para filtrar sea el mismo que se define en getStatusBadge
+                    // Extrae solo el texto del badge para la comparación
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = getStatusBadge(r.descripcionDano);
+                    const estadoParaFiltrar = tempDiv.textContent.trim();
+                    
+                    const aprobacionActual = r.apruebaDano;
 
-    if (filtrados.length === 0) {
-      tableBody.innerHTML = `<tr><td colspan="8" class="text-center py-4">No hay resultados</td></tr>`;
-      return;
-    }
+                    return (!mes || mes === mesActual) &&
+                           (!tipo || tipo === r.tipoUtensilio) &&
+                           (!estado || estado === estadoParaFiltrar) && // Compara con el texto extraído
+                           (!aprobacion || aprobacion === aprobacionActual);
+                });
 
-    tableBody.innerHTML = filtrados.map(r => `
-      <tr>
-        <td>${formatDate(r.fecha)}</td>
-        <td>${r.responsable}</td>
-        <td><span class="badge bg-info">${r.tipoUtensilio}</span></td>
-        <td>${r.nombreUtensilio}</td>
-        <td>${getStatusBadge(r.descripcionDano)}</td>
-        <td>${getApprovalBadge(r.apruebaDano)}</td>
-        <td>
-          ${r.fotoUrl ? `
-            <button class="btn btn-sm btn-outline-primary" onclick="showPhoto('${r.fotoUrl.replace(/'/g, "\\'")}')">
-              <i class="fas fa-image me-1"></i> Ver Foto
-            </button>` : '<span class="text-muted">Sin Foto</span>'}
-        </td>
-        <td><span class="text-muted">🔒</span></td>
-      </tr>
-    `).join('');
-  } catch (err) {
-    console.error('❌ Error al cargar Google Sheets:', err);
-    tableBody.innerHTML = `<tr><td colspan="8" class="text-center text-danger py-4">Error al cargar datos</td></tr>`;
-  }
-}
+                if (filtrados.length === 0) {
+                    tableBody.innerHTML = `<tr><td colspan="8" class="text-center py-4">No hay resultados</td></tr>`;
+                    return;
+                }
 
+                tableBody.innerHTML = filtrados.map(r => `
+                    <tr>
+                        <td>${formatDate(r.fecha)}</td>
+                        <td>${r.responsable}</td>
+                        <td><span class="badge bg-info">${r.tipoUtensilio}</span></td>
+                        <td>${r.nombreUtensilio}</td>
+                        <td>${getStatusBadge(r.descripcionDano)}</td>
+                        <td>${getApprovalBadge(r.apruebaDano)}</td>
+                        <td>
+                            ${r.fotoUrl ? `
+                                <button class="btn btn-sm btn-outline-primary" onclick="showPhoto('${r.fotoUrl.replace(/'/g, "\\'")}')">
+                                    <i class="fas fa-image me-1"></i> Ver Foto
+                                </button>` : '<span class="text-muted">Sin Foto</span>'}
+                        </td>
+                        <td><span class="text-muted">🔒</span></td>
+                    </tr>
+                `).join('');
+            } catch (err) {
+                console.error('❌ Error al cargar Google Sheets:', err);
+                tableBody.innerHTML = `<tr><td colspan="8" class="text-center text-danger py-4">Error al cargar datos. ${err.message || 'Verifique la URL de la hoja, el nombre de la pestaña "Utensilios" o los permisos.'}</td></tr>`;
+            }
+        }
 
+        // FUNCION AJUSTADA PARA EL FORMATO DE FECHA
         function formatDate(dateString) {
-            if (!dateString || typeof dateString !== 'string') return 'Fecha inválida';
-
-            // Detecta y convierte formato yyyy-mm-dd → dd-mm-yyyy
-            const match = dateString.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-            if (match) {
-                return `${match[3]}-${match[2]}-${match[1]}`;
+            if (!dateString || typeof dateString !== 'string' || dateString.length !== 10) {
+                return 'Fecha inválida';
             }
 
-            const date = new Date(dateString);
-            if (isNaN(date)) return 'Fecha inválida';
-
-            return date.toLocaleDateString('es-ES', {
-                day: '2-digit',
-                month: '2-digit',
-                year: 'numeric'
-            });
+            // Asume dateString está en formato YYYY-MM-DD
+            const parts = dateString.split('-');
+            if (parts.length === 3 && parts[0].length === 4 && parts[1].length === 2 && parts[2].length === 2) {
+                // Reordena a DD-MM-YYYY
+                return `${parts[2]}-${parts[1]}-${parts[0]}`;
+            }
+            return 'Fecha inválida';
         }
 
         function getStatusBadge(descripcion) {
             const desc = descripcion.toLowerCase();
             if (desc.includes('dañado') || desc.includes('roto') || desc.includes('quebrado')
-                || desc.includes('partido') || desc.includes('no sirve') || desc.includes('sirve')
-                || desc.includes('caduc') || desc.includes('vencido') || desc.includes('expirado')) {
+                || desc.includes('partido') || desc.includes('no sirve') || desc.includes('caduc')
+                || desc.includes('vencido') || desc.includes('expirado')) {
                 return '<span class="status-badge status-damaged">Dañado</span>';
             } else {
                 return '<span class="status-badge status-soon">Pronto a Dañar</span>';
@@ -895,11 +906,7 @@ async function loadDatabase() {
 
         function deleteRecord(id) {
             if (confirm('¿Estás seguro de que quieres eliminar este registro?')) {
-                let records = JSON.parse(sessionStorage.getItem('utensilios') || '[]');
-                records = records.filter(record => record.id !== id);
-                sessionStorage.setItem('utensilios', JSON.stringify(records));
-                loadDatabase();
-                showSuccessMessage('✅ Registro eliminado exitosamente');
+                showErrorMessage('Función de eliminación no implementada para Google Sheets.');
             }
         }
 
@@ -907,6 +914,7 @@ async function loadDatabase() {
             document.getElementById('registerForm').reset();
             document.getElementById('fecha').valueAsDate = new Date();
             document.getElementById('photoPreview').style.display = 'none';
+            document.getElementById('previewImg').src = '';
         }
 
         function showSuccessMessage(message) {
@@ -933,10 +941,8 @@ async function loadDatabase() {
         }
 
         function cerrarSesion() {
-            // Limpiar sesión
             sessionStorage.clear();
 
-            // Mostrar mensaje de despedida
             const overlay = document.createElement('div');
             overlay.style.cssText = `
                 position: fixed; top: 0; left: 0; width: 100%; height: 100%;
