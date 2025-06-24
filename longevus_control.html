@@ -879,8 +879,10 @@ async function loadDatabase() {
         }
 
         function showPhoto(url) {
-            document.getElementById('modalPhoto').src = url;
-            new bootstrap.Modal(document.getElementById('photoModal')).show();
+          const modalImg = document.getElementById('imagenModal');
+          modalImg.src = url;
+          const modal = new bootstrap.Modal(document.getElementById('modalFoto'));
+          modal.show();
         }
 
         function deleteRecord(id) {
