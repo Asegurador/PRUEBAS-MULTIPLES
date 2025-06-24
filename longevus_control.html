@@ -755,52 +755,70 @@
             document.getElementById(id).addEventListener('change', loadDatabase);
         });
 
-        function loadDatabase() {
-            const tableBody = document.getElementById('databaseTable');
-            const records = JSON.parse(sessionStorage.getItem('utensilios') || '[]');
+async function loadDatabase() {
+  const tableBody = document.getElementById('databaseTable');
+  tableBody.innerHTML = `<tr><td colspan="8" class="text-center py-4">Cargando...</td></tr>`;
 
-            const mes = document.getElementById('filtroMes').value;
-            const tipo = document.getElementById('filtroTipo').value;
-            const estado = document.getElementById('filtroEstado').value;
-            const aprobacion = document.getElementById('filtroAprobacion').value;
+  // Filtros activos
+  const mes = document.getElementById('filtroMes').value;
+  const tipo = document.getElementById('filtroTipo').value;
+  const estado = document.getElementById('filtroEstado').value;
+  const aprobacion = document.getElementById('filtroAprobacion').value;
 
-            const filtrados = records.filter(r => {
-                const fecha = new Date(r.fecha);
-                const mesActual = (fecha.getMonth() + 1).toString().padStart(2, '0');
-                const estadoActual = getStatusBadge(r.descripcionDano).match(/>(.*?)</)?.[1];
-                const aprobacionActual = r.apruebaDano;
+  try {
+    const res = await fetch("https://docs.google.com/spreadsheets/d/1J5TOdUkJGWfvxzemzolU8i1AAoEAqbTiF8cOdaXrnG8/gviz/tq?tqx=out:json&sheet=Utensilios");
+    const text = await res.text();
+    const json = JSON.parse(text.substring(47).slice(0, -2));
 
-                return (!mes || mes === mesActual) &&
-                    (!tipo || tipo === r.tipoUtensilio) &&
-                    (!estado || estado === estadoActual) &&
-                    (!aprobacion || aprobacion === aprobacionActual);
-            });
+    const rows = json.table.rows.map(r => ({
+      fecha: r.c[1]?.v || '',
+      responsable: r.c[2]?.v || '',
+      tipoUtensilio: r.c[3]?.v || '',
+      nombreUtensilio: r.c[4]?.v || '',
+      descripcionDano: r.c[5]?.v || '',
+      apruebaDano: r.c[6]?.v || '',
+      fotoUrl: r.c[7]?.v || ''
+    }));
 
-            if (filtrados.length === 0) {
-                tableBody.innerHTML = `<tr><td colspan="8" class="text-center py-4">No hay resultados</td></tr>`;
-                return;
-            }
+    const filtrados = rows.filter(r => {
+      const fecha = new Date(r.fecha);
+      const mesActual = (fecha.getMonth() + 1).toString().padStart(2, '0');
+      const estadoActual = getStatusBadge(r.descripcionDano).match(/>(.*?)</)?.[1];
+      const aprobacionActual = r.apruebaDano;
 
-            tableBody.innerHTML = filtrados.map(record => `
-    <tr>
-      <td>${formatDate(record.fecha)}</td>
-      <td>${record.responsable}</td>
-      <td><span class="badge bg-info">${record.tipoUtensilio}</span></td>
-      <td>${record.nombreUtensilio}</td>
-      <td>${getStatusBadge(record.descripcionDano)}</td>
-      <td>${getApprovalBadge(record.apruebaDano)}</td>
-      <td>
-        <button class="btn btn-sm btn-outline-primary" onclick="showPhoto('${record.fotoUrl}')">
-          <i class="fas fa-image"></i>
-        </button>
-      </td>
-      <td>
-        <button class="btn btn-sm btn-outline-danger" onclick="deleteRecord(${record.id})">
-          <i class="fas fa-trash"></i>
-        </button>
-      </td>
-    </tr>`).join('');
-        }
+      return (!mes || mes === mesActual) &&
+             (!tipo || tipo === r.tipoUtensilio) &&
+             (!estado || estado === estadoActual) &&
+             (!aprobacion || aprobacion === aprobacionActual);
+    });
+
+    if (filtrados.length === 0) {
+      tableBody.innerHTML = `<tr><td colspan="8" class="text-center py-4">No hay resultados</td></tr>`;
+      return;
+    }
+
+    tableBody.innerHTML = filtrados.map(r => `
+      <tr>
+        <td>${formatDate(r.fecha)}</td>
+        <td>${r.responsable}</td>
+        <td><span class="badge bg-info">${r.tipoUtensilio}</span></td>
+        <td>${r.nombreUtensilio}</td>
+        <td>${getStatusBadge(r.descripcionDano)}</td>
+        <td>${getApprovalBadge(r.apruebaDano)}</td>
+        <td>
+          <button class="btn btn-sm btn-outline-primary" onclick="showPhoto('${r.fotoUrl}')">
+            <i class="fas fa-image"></i>
+          </button>
+        </td>
+        <td><span class="text-muted">🔒</span></td>
+      </tr>
+    `).join('');
+  } catch (err) {
+    console.error('❌ Error al cargar Google Sheets:', err);
+    tableBody.innerHTML = `<tr><td colspan="8" class="text-center text-danger py-4">Error al cargar datos</td></tr>`;
+  }
+}
+
 
         function formatDate(dateString) {
             const date = new Date(dateString);
