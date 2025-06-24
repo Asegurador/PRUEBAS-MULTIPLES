@@ -549,7 +549,7 @@
         // Configuración de Google Sheets y Drive
         const GOOGLE_SHEETS_URL = 'https://docs.google.com/spreadsheets/d/1J5TOdUkJGWfvxzemzolU8i1AAoEAqbTiF8cOdaXrnG8/edit?usp=sharing'; // Tu URL
         const GOOGLE_DRIVE_FOLDER = 'https://drive.google.com/drive/folders/1-eloGjWFm3JCFwGn5DdBqoPZTLXOan0x?usp=drive_link'; // Tu URL de carpeta
-        // URL de tu Apps Script para envío de datos. ¡Asegúrate de que esta URL sea la correcta después de desplegar!
+        // URL de tu Apps Script para envío de datos. ¡ACTUALIZADA con la que me proporcionaste!
         const APPS_SCRIPT_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzOIzDEqoklHHLxdA-po8YqHVys4Sume27uhHblI3aqlNQB2v7xhm6Hkyy9QxXFTHs/exec';
 
 
@@ -573,9 +573,7 @@
         }
         
         function paginaPrincipal() {
-            // Implementa aquí la lógica para volver a la página principal.
-            // Podría ser simplemente redirigir a 'index.html' o a la URL que desees.
-            window.location.href = 'index.html'; // O la URL de tu página principal
+            window.location.href = 'index.html';
         }
 
 
@@ -677,13 +675,10 @@
             submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Guardando...';
             submitBtn.disabled = true;
 
-            // Simular envío a Google Sheets (en realidad, es el envío al Apps Script)
             submitToGoogleSheets(formData)
                 .then(() => {
                     showSuccessMessage('✅ Utensilio registrado exitosamente');
                     resetForm();
-                    // No es necesario llamar a loadDatabase aquí, ya que se llama al cambiar de módulo
-                    // showModule('database'); // Podrías cambiar automáticamente al módulo de base de datos
                 })
                 .catch(error => {
                     console.error('Error en handleSubmit:', error);
@@ -715,7 +710,7 @@
             const reader = new FileReader();
             return new Promise((resolve, reject) => {
                 reader.onload = async function () {
-                    const base64 = reader.result.split(',')[1]; // obtener solo la parte base64 sin el prefijo
+                    const base64 = reader.result.split(',')[1];
                     
                     const formData = new URLSearchParams();
                     formData.append('fecha', data.fecha);
@@ -768,13 +763,25 @@
             try {
                 // Se usa la URL gviz/tq para obtener los datos de la hoja de cálculo
                 // El parámetro 'sheet' debe coincidir con el nombre de tu pestaña en Google Sheets
-                const response = await fetch(`${GOOGLE_SHEETS_URL.replace('/edit?usp=sharing', '')}/gviz/tq?tqx=out:json&sheet=Utensilios`);
+                // Se utiliza el SHEET_ID para construir la URL, que es más fiable que el GOOGLE_SHEETS_URL completo
+                const sheetId = GOOGLE_SHEETS_URL.match(/\/d\/(.*?)\//)[1]; // Extrae el ID de la URL
+                const gvizUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&sheet=Utensilios`;
+                
+                const response = await fetch(gvizUrl);
                 const text = await response.text();
                 
-                // Extraer el JSON de la respuesta JSONP
-                // La respuesta de Google Sheets gviz/tq viene envuelta en 'google.visualization.Query.setResponse(...)'
-                const jsonString = text.substring(text.indexOf('{'), text.lastIndexOf('}') + 1);
-                const json = JSON.parse(jsonString);
+                // --- PARSING DEL JSONP MEJORADO ---
+                // Busca el inicio y fin del objeto JSON dentro de la respuesta
+                const jsonStart = text.indexOf('{');
+                const jsonEnd = text.lastIndexOf('}');
+                let json;
+                if (jsonStart !== -1 && jsonEnd !== -1) {
+                    const jsonString = text.substring(jsonStart, jsonEnd + 1);
+                    json = JSON.parse(jsonString);
+                } else {
+                    throw new Error('No se pudo parsear la respuesta JSON de Google Sheets.');
+                }
+                // --- FIN PARSING DEL JSONP MEJORADO ---
 
                 const rows = json.table.rows.map(r => {
                     // r.c[index] contiene el objeto de celda. .v es el valor, .f es el valor formateado (si existe)
@@ -803,6 +810,9 @@
                 });
 
                 const filtrados = rows.filter(r => {
+                    // Si r.fecha es "Fecha inválida", no podemos dividirla
+                    if (r.fecha === 'Fecha inválida' || !r.fecha) return false;
+
                     const [yyyy, mm] = r.fecha.split('-'); // Extrae el mes del formato YYYY-MM-DD
                     const mesActual = mm;
                     
@@ -819,7 +829,7 @@
 
                     return (!mes || mes === mesActual) &&
                            (!tipo || tipo === r.tipoUtensilio) &&
-                           (!estado || estado === estadoParaFiltrar) && // Usa el estado procesado
+                           (!estado || estado === estadoParaFiltrar) &&
                            (!aprobacion || aprobacion === aprobacionActual);
                 });
 
@@ -847,36 +857,32 @@
                 `).join('');
             } catch (err) {
                 console.error('❌ Error al cargar Google Sheets:', err);
-                tableBody.innerHTML = `<tr><td colspan="8" class="text-center text-danger py-4">Error al cargar datos. Verifique la URL de la hoja o los permisos.</td></tr>`;
+                tableBody.innerHTML = `<tr><td colspan="8" class="text-center text-danger py-4">Error al cargar datos. ${err.message || 'Verifique la URL de la hoja, el nombre de la pestaña "Utensilios" o los permisos.'}</td></tr>`;
             }
         }
 
         // FUNCION AJUSTADA PARA EL FORMATO DE FECHA
         function formatDate(dateString) {
-            if (!dateString || typeof dateString !== 'string') return 'Fecha inválida';
-
-            // El input type="date" y Apps Script guardan como YYYY-MM-DD
-            // Queremos mostrar DD-MM-YYYY
-            const parts = dateString.split('-');
-            if (parts.length === 3) {
-                // Asegurarse de que el año tiene 4 dígitos
-                if (parts[0].length === 4) {
-                     return `${parts[2]}-${parts[1]}-${parts[0]}`; // DD-MM-YYYY
-                }
+            if (!dateString || typeof dateString !== 'string' || dateString.length !== 10) {
+                return 'Fecha inválida';
             }
-            // Fallback si el formato no es el esperado
+
+            // Asume dateString está en formato YYYY-MM-DD
+            const parts = dateString.split('-');
+            if (parts.length === 3 && parts[0].length === 4 && parts[1].length === 2 && parts[2].length === 2) {
+                // Reordena a DD-MM-YYYY
+                return `${parts[2]}-${parts[1]}-${parts[0]}`;
+            }
             return 'Fecha inválida';
         }
 
         function getStatusBadge(descripcion) {
             const desc = descripcion.toLowerCase();
-            // Criterios para "Dañado" (incluyendo caducado/expirado)
             if (desc.includes('dañado') || desc.includes('roto') || desc.includes('quebrado')
                 || desc.includes('partido') || desc.includes('no sirve') || desc.includes('caduc')
                 || desc.includes('vencido') || desc.includes('expirado')) {
                 return '<span class="status-badge status-damaged">Dañado</span>';
             } else {
-                // Cualquier otra descripción se considera "Pronto a Dañar" o "Ok" si se prefiere
                 return '<span class="status-badge status-soon">Pronto a Dañar</span>';
             }
         }
@@ -885,7 +891,7 @@
             switch (aprobacion) {
                 case 'Sí':
                     return '<span class="badge bg-success">Aprobado</span>';
-                case 'No': // Si hubiera un caso "No" de rechazo
+                case 'No':
                     return '<span class="badge bg-danger">Rechazado</span>';
                 case 'Pendiente':
                     return '<span class="badge bg-warning">Pendiente</span>';
@@ -894,7 +900,6 @@
             }
         }
 
-        // Esta función está bien, solo verifica que la URL de la foto sea correcta
        function showPhoto(url) {
          const img = document.getElementById('modalPhoto');
          img.src = url;
@@ -905,17 +910,15 @@
 
         function deleteRecord(id) {
             if (confirm('¿Estás seguro de que quieres eliminar este registro?')) {
-                // Esta función simula la eliminación, en un sistema real necesitarías una API
-                // para eliminar en Google Sheets
                 showErrorMessage('Función de eliminación no implementada para Google Sheets.');
             }
         }
 
         function resetForm() {
             document.getElementById('registerForm').reset();
-            document.getElementById('fecha').valueAsDate = new Date(); // Resetear a la fecha actual
-            document.getElementById('photoPreview').style.display = 'none'; // Ocultar vista previa de foto
-            document.getElementById('previewImg').src = ''; // Limpiar la fuente de la imagen
+            document.getElementById('fecha').valueAsDate = new Date();
+            document.getElementById('photoPreview').style.display = 'none';
+            document.getElementById('previewImg').src = '';
         }
 
         function showSuccessMessage(message) {
@@ -942,10 +945,8 @@
         }
 
         function cerrarSesion() {
-            // Limpiar sesión
             sessionStorage.clear();
 
-            // Mostrar mensaje de despedida
             const overlay = document.createElement('div');
             overlay.style.cssText = `
                 position: fixed; top: 0; left: 0; width: 100%; height: 100%;
