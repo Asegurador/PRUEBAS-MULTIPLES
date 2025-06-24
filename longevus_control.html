@@ -712,10 +712,13 @@
 
         
 function formatDate(dateString) {
-  // Acepta formato yyyy-mm-dd y devuelve dd-mm-yyyy
-  const [year, month, day] = dateString.split('-');
-  if (!year || !month || !day) return 'Fecha inválida';
-  return `${day}-${month}-${year}`;
+  if (!dateString || typeof dateString !== 'string') return 'Fecha inválida';
+  const parts = dateString.split('-');
+  if (parts.length === 3 && parts[0].length === 4) {
+    return `${parts[2]}-${parts[1]}-${parts[0]}`;
+  }
+  return 'Fecha inválida';
+}
 }
 
 async function submitToGoogleSheets(data) {
