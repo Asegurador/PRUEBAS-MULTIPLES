@@ -783,7 +783,7 @@ async function loadDatabase() {
       let fotoUrl = '';
 
       if (rawUrl.includes('drive.google.com/file/d/')) {
-        const match = rawUrl.match(/\\/d\\/([a-zA-Z0-9_-]+)/);
+        const match = rawUrl.match(/\/d\/([a-zA-Z0-9_-]+)/);
         if (match && match[1]) {
           fotoUrl = `https://drive.google.com/uc?export=view&id=${match[1]}`;
         }
