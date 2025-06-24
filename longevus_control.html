@@ -543,508 +543,427 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
 
     <script>
-// Variables globales
-let currentModule = 'home';
-let inactivityTimer;
-let lastActivity = Date.now();
+        // Variables globales
+        let currentModule = 'home';
+        let inactivityTimer;
+        let lastActivity = Date.now();
 
-// Configuración de Google Sheets y Drive
-const GOOGLE_SHEETS_URL = 'https://docs.google.com/spreadsheets/d/1J5TOdUkJGWfvxzemzolU8i1AAoEAqbTiF8cOdaXrnG8/edit?usp=sharing';
-const GOOGLE_DRIVE_FOLDER = 'https://drive.google.com/drive/folders/1-eloGjWFm3JCFwGn5DdBqoPZTLXOan0x?usp=drive_link';
-const APPS_SCRIPT_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzOIzDEqoklHHLxdA-po8YqHVys4Sume27uhHblI3aqlNQB2v7xhm6Hkyy9QxXFTHs/exec';
+        // Configuración de Google Sheets y Drive
+        const GOOGLE_SHEETS_URL = 'https://docs.google.com/spreadsheets/d/1J5TOdUkJGWfvxzemzolU8i1AAoEAqbTiF8cOdaXrnG8/edit?usp=sharing'; // Tu URL
+        const GOOGLE_DRIVE_FOLDER = 'https://drive.google.com/drive/folders/1-eloGjWFm3JCFwGn5DdBqoPZTLXOan0x?usp=drive_link'; // Tu URL de carpeta
+        // URL de tu Apps Script para envío de datos. ¡ACTUALIZADA con la que me proporcionaste!
+        const APPS_SCRIPT_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzOIzDEqoklHHLxdA-po8YqHVys4Sume27uhHblI3aqlNQB2v7xhm6Hkyy9QxXFTHs/exec';
 
-// Inicialización
-window.addEventListener('load', function () {
-    verificarAutenticacion();
-    inicializarSistema();
-    setupInactivityTimer();
-});
 
-function verificarAutenticacion() {
-    if (sessionStorage.getItem('autenticado') !== 'true') {
-        window.location.href = 'index.html';
-        return;
-    }
-
-    const usuario = sessionStorage.getItem('usuario');
-    if (usuario) {
-        document.getElementById('currentUser').textContent = usuario;
-    }
-}
-
-function paginaPrincipal() {
-    window.location.href = 'index.html';
-}
-
-function inicializarSistema() {
-    // Establecer fecha actual
-    document.getElementById('fecha').valueAsDate = new Date();
-
-    // Setup de preview de foto
-    document.getElementById('foto').addEventListener('change', handlePhotoPreview);
-
-    // Setup del formulario
-    document.getElementById('registerForm').addEventListener('submit', handleSubmit);
-
-    // Cargar datos iniciales
-    loadDatabase();
-}
-
-function setupInactivityTimer() {
-    const INACTIVITY_TIME = 5 * 60 * 1000; // 5 minutos
-
-    function resetTimer() {
-        clearTimeout(inactivityTimer);
-        lastActivity = Date.now();
-        inactivityTimer = setTimeout(() => {
-            alert('⏰ Sesión expirada por inactividad');
-            cerrarSesion();
-        }, INACTIVITY_TIME);
-    }
-
-    // Eventos que resetean el timer
-    ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'].forEach(event => {
-        document.addEventListener(event, resetTimer, true);
-    });
-
-    // Iniciar timer
-    resetTimer();
-}
-
-function showModule(module) {
-    // Ocultar todos los módulos
-    document.getElementById('homeModule').style.display = 'none';
-    document.getElementById('registerModule').style.display = 'none';
-    document.getElementById('databaseModule').style.display = 'none';
-
-    // Mostrar módulo seleccionado
-    document.getElementById(module + 'Module').style.display = 'block';
-
-    // Actualizar navegación
-    document.querySelectorAll('.nav-link').forEach(link => {
-        link.classList.remove('active');
-    });
-
-    if (module === 'home') {
-        document.querySelector('.nav-link[href="#"]').classList.add('active');
-    } else if (module === 'register') {
-        document.querySelector('.nav-link[onclick="showModule(\'register\')"]').classList.add('active');
-    } else if (module === 'database') {
-        document.querySelector('.nav-link[onclick="showModule(\'database\')"]').classList.add('active');
-        loadDatabase(); // Recarga la base de datos cada vez que se muestra
-    }
-
-    currentModule = module;
-}
-
-function handlePhotoPreview(event) {
-    const file = event.target.files[0];
-    if (file) {
-        const reader = new FileReader();
-        reader.onload = function (e) {
-            document.getElementById('previewImg').src = e.target.result;
-            document.getElementById('photoPreview').style.display = 'block';
-        };
-        reader.readAsDataURL(file);
-    }
-}
-
-function handleSubmit(event) {
-    event.preventDefault();
-
-    const formData = {
-        fecha: document.getElementById('fecha').value,
-        responsable: document.getElementById('responsable').value,
-        tipoUtensilio: document.getElementById('tipoUtensilio').value,
-        nombreUtensilio: document.getElementById('nombreUtensilio').value,
-        descripcionDano: document.getElementById('descripcionDano').value,
-        apruebaDano: document.getElementById('apruebaDano').value,
-        foto: document.getElementById('foto').files[0],
-        timestamp: new Date().toISOString()
-    };
-
-    // Validar datos
-    if (!validateForm(formData)) {
-        return;
-    }
-
-    // Mostrar loading
-    const submitBtn = event.target.querySelector('button[type="submit"]');
-    const originalText = submitBtn.innerHTML;
-    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Guardando...';
-    submitBtn.disabled = true;
-
-    submitToGoogleSheets(formData)
-        .then(() => {
-            showSuccessMessage('✅ Utensilio registrado exitosamente');
-            resetForm();
-        })
-        .catch(error => {
-            console.error('Error en handleSubmit:', error);
-            showErrorMessage('❌ Error al guardar: ' + (error.message || 'Error desconocido'));
-        })
-        .finally(() => {
-            submitBtn.innerHTML = originalText;
-            submitBtn.disabled = false;
+        // Inicialización
+        window.addEventListener('load', function () {
+            verificarAutenticacion();
+            inicializarSistema();
+            setupInactivityTimer();
         });
-}
 
-function validateForm(data) {
-    if (!data.fecha || !data.responsable || !data.tipoUtensilio ||
-        !data.nombreUtensilio || !data.descripcionDano || !data.apruebaDano) {
-        showErrorMessage('❌ Por favor completa todos los campos obligatorios');
-        return false;
-    }
+        function verificarAutenticacion() {
+            if (sessionStorage.getItem('autenticado') !== 'true') {
+                window.location.href = 'index.html';
+                return;
+            }
 
-    if (!data.foto) {
-        showErrorMessage('❌ Por favor adjunta una foto del utensilio');
-        return false;
-    }
+            const usuario = sessionStorage.getItem('usuario');
+            if (usuario) {
+                document.getElementById('currentUser').textContent = usuario;
+            }
+        }
 
-    return true;
-}
+        function paginaPrincipal() {
+            window.location.href = 'index.html';
+        }
 
-async function submitToGoogleSheets(data) {
-    const reader = new FileReader();
-    return new Promise((resolve, reject) => {
-        reader.onload = async function () {
-            const base64 = reader.result.split(',')[1];
 
-            const formData = new URLSearchParams();
-            formData.append('fecha', data.fecha);
-            formData.append('responsable', data.responsable);
-            formData.append('tipoUtensilio', data.tipoUtensilio);
-            formData.append('nombreUtensilio', data.nombreUtensilio);
-            formData.append('descripcion', data.descripcionDano);
-            formData.append('aprueba', data.apruebaDano);
-            formData.append('foto_base64', base64);
-            formData.append('foto_tipo', data.foto.type);
+        function inicializarSistema() {
+            // Establecer fecha actual
+            document.getElementById('fecha').valueAsDate = new Date();
+
+            // Setup de preview de foto
+            document.getElementById('foto').addEventListener('change', handlePhotoPreview);
+
+            // Setup del formulario
+            document.getElementById('registerForm').addEventListener('submit', handleSubmit);
+
+            // Cargar datos iniciales
+            loadDatabase();
+        }
+
+        function setupInactivityTimer() {
+            const INACTIVITY_TIME = 5 * 60 * 1000; // 5 minutos
+
+            function resetTimer() {
+                clearTimeout(inactivityTimer);
+                lastActivity = Date.now();
+                inactivityTimer = setTimeout(() => {
+                    alert('⏰ Sesión expirada por inactividad');
+                    cerrarSesion();
+                }, INACTIVITY_TIME);
+            }
+
+            // Eventos que resetean el timer
+            ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'].forEach(event => {
+                document.addEventListener(event, resetTimer, true);
+            });
+
+            // Iniciar timer
+            resetTimer();
+        }
+
+        function showModule(module) {
+            // Ocultar todos los módulos
+            document.getElementById('homeModule').style.display = 'none';
+            document.getElementById('registerModule').style.display = 'none';
+            document.getElementById('databaseModule').style.display = 'none';
+
+            // Mostrar módulo seleccionado
+            document.getElementById(module + 'Module').style.display = 'block';
+
+            // Actualizar navegación
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.classList.remove('active');
+            });
+
+            if (module === 'home') {
+                document.querySelector('.nav-link[href="#"]').classList.add('active');
+            } else if (module === 'register') {
+                document.querySelector('.nav-link[onclick="showModule(\'register\')"]').classList.add('active');
+            } else if (module === 'database') {
+                document.querySelector('.nav-link[onclick="showModule(\'database\')"]').classList.add('active');
+                loadDatabase(); // Recarga la base de datos cada vez que se muestra
+            }
+
+            currentModule = module;
+        }
+
+        function handlePhotoPreview(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    document.getElementById('previewImg').src = e.target.result;
+                    document.getElementById('photoPreview').style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function handleSubmit(event) {
+            event.preventDefault();
+
+            const formData = {
+                fecha: document.getElementById('fecha').value,
+                responsable: document.getElementById('responsable').value,
+                tipoUtensilio: document.getElementById('tipoUtensilio').value,
+                nombreUtensilio: document.getElementById('nombreUtensilio').value,
+                descripcionDano: document.getElementById('descripcionDano').value,
+                apruebaDano: document.getElementById('apruebaDano').value,
+                foto: document.getElementById('foto').files[0],
+                timestamp: new Date().toISOString()
+            };
+
+            // Validar datos
+            if (!validateForm(formData)) {
+                return;
+            }
+
+            // Mostrar loading
+            const submitBtn = event.target.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Guardando...';
+            submitBtn.disabled = true;
+
+            submitToGoogleSheets(formData)
+                .then(() => {
+                    showSuccessMessage('✅ Utensilio registrado exitosamente');
+                    resetForm();
+                })
+                .catch(error => {
+                    console.error('Error en handleSubmit:', error);
+                    showErrorMessage('❌ Error al guardar: ' + (error.message || 'Error desconocido'));
+                })
+                .finally(() => {
+                    submitBtn.innerHTML = originalText;
+                    submitBtn.disabled = false;
+                });
+        }
+
+        function validateForm(data) {
+            if (!data.fecha || !data.responsable || !data.tipoUtensilio ||
+                !data.nombreUtensilio || !data.descripcionDano || !data.apruebaDano) {
+                showErrorMessage('❌ Por favor completa todos los campos obligatorios');
+                return false;
+            }
+
+            if (!data.foto) {
+                showErrorMessage('❌ Por favor adjunta una foto del utensilio');
+                return false;
+            }
+
+            return true;
+        }
+
+
+        async function submitToGoogleSheets(data) {
+            const reader = new FileReader();
+            return new Promise((resolve, reject) => {
+                reader.onload = async function () {
+                    const base64 = reader.result.split(',')[1];
+
+                    const formData = new URLSearchParams();
+                    formData.append('fecha', data.fecha);
+                    formData.append('responsable', data.responsable);
+                    formData.append('tipoUtensilio', data.tipoUtensilio);
+                    formData.append('nombreUtensilio', data.nombreUtensilio);
+                    formData.append('descripcion', data.descripcionDano);
+                    formData.append('aprueba', data.apruebaDano);
+                    formData.append('foto_base64', base64);
+                    formData.append('foto_tipo', data.foto.type);
+
+                    try {
+                        const res = await fetch(APPS_SCRIPT_WEB_APP_URL, { // Usa la constante global
+                            method: 'POST',
+                            body: formData
+                        });
+                        const json = await res.json();
+                        if (json.success) {
+                            console.log('Subido exitosamente', json);
+                            resolve(json);
+                        } else {
+                            reject(new Error(json.error || 'Error desconocido en el Apps Script'));
+                        }
+                    } catch (e) {
+                        console.error('Error en la llamada a fetch del Apps Script:', e);
+                        reject(new Error('No se pudo conectar con el servidor de registro. Intente de nuevo.'));
+                    }
+                };
+
+                reader.onerror = () => reject(reader.error);
+                reader.readAsDataURL(data.foto);
+            });
+        }
+
+
+        ['filtroMes', 'filtroTipo', 'filtroEstado', 'filtroAprobacion'].forEach(id => {
+            document.getElementById(id).addEventListener('change', loadDatabase);
+        });
+
+        // FUNCION AJUSTADA PARA CARGAR DATOS Y MOSTRAR FOTOS/FECHAS CORRECTAMENTE
+        async function loadDatabase() {
+            const tableBody = document.getElementById('databaseTable');
+            tableBody.innerHTML = `<tr><td colspan="8" class="text-center py-4">Cargando...</td></tr>`;
+
+            const mes = document.getElementById('filtroMes').value;
+            const tipo = document.getElementById('filtroTipo').value;
+            const estado = document.getElementById('filtroEstado').value;
+            const aprobacion = document.getElementById('filtroAprobacion').value;
 
             try {
-                const res = await fetch(APPS_SCRIPT_WEB_APP_URL, {
-                    method: 'POST',
-                    body: formData
-                });
-                const json = await res.json();
-                if (json.success) {
-                    console.log('Subido exitosamente', json);
-                    resolve(json);
+                // Se usa la URL gviz/tq para obtener los datos de la hoja de cálculo
+                // El parámetro 'sheet' debe coincidir con el nombre de tu pestaña en Google Sheets
+                const sheetId = GOOGLE_SHEETS_URL.match(/\/d\/(.*?)\//)[1]; // Extrae el ID de la URL
+                const gvizUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&sheet=Utensilios`;
+
+                const response = await fetch(gvizUrl);
+                const text = await response.text();
+
+                // --- PARSING DEL JSONP MEJORADO ---
+                // Busca el inicio y fin del objeto JSON dentro de la respuesta
+                const jsonStart = text.indexOf('{');
+                const jsonEnd = text.lastIndexOf('}');
+                let json;
+                if (jsonStart !== -1 && jsonEnd !== -1) {
+                    const jsonString = text.substring(jsonStart, jsonEnd + 1);
+                    json = JSON.parse(jsonString);
                 } else {
-                    reject(new Error(json.error || 'Error desconocido en el Apps Script'));
+                    throw new Error('No se pudo parsear la respuesta JSON de Google Sheets.');
                 }
-            } catch (e) {
-                console.error('Error en la llamada a fetch del Apps Script:', e);
-                reject(new Error('No se pudo conectar with el servidor de registro. Intente de nuevo.'));
+                // --- FIN PARSING DEL JSONP MEJORADO ---
+
+                const rows = json.table.rows.map(r => {
+                    // r.c[index] contiene el objeto de celda. .v es el valor, .f es el valor formateado (si existe)
+                    // Asegúrate de que los índices coincidan con tus columnas en Google Sheet (0-based)
+                    // Columna 1 (ID - no mostrada)
+                    // Columna 2 (Fecha) -> index 1
+                    // Columna 3 (Responsable) -> index 2
+                    // Columna 4 (Tipo de Utensilio) -> index 3
+                    // Columna 5 (Nombre Utensilio) -> index 4
+                    // Columna 6 (Descripción Daño) -> index 5
+                    // Columna 7 (Aprueba Daño) -> index 6
+                    // Columna 8 (URL Foto) -> index 7
+
+                    let rawDate = r.c[1]?.v || ''; // Fecha en formato YYYY-MM-DD
+                    let fotoUrl = r.c[7]?.v || ''; // URL de la foto tal cual la guarda Apps Script
+
+                    return {
+                        fecha: rawDate,
+                        responsable: r.c[2]?.v || '',
+                        tipoUtensilio: r.c[3]?.v || '',
+                        nombreUtensilio: r.c[4]?.v || '',
+                        descripcionDano: r.c[5]?.v || '',
+                        apruebaDano: r.c[6]?.v || '',
+                        fotoUrl: fotoUrl // Usamos la URL directamente del Apps Script
+                    };
+                });
+
+                const filtrados = rows.filter(r => {
+                    // Si r.fecha es "Fecha inválida", no podemos dividirla
+                    if (r.fecha === 'Fecha inválida' || !r.fecha) return false;
+
+                    const [yyyy, mm] = r.fecha.split('-'); // Extrae el mes del formato YYYY-MM-DD
+                    const mesActual = mm;
+
+                    // Asegura que el estado para filtrar sea el mismo que se define en getStatusBadge
+                    // Extrae solo el texto del badge para la comparación
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = getStatusBadge(r.descripcionDano);
+                    const estadoParaFiltrar = tempDiv.textContent.trim();
+
+                    const aprobacionActual = r.apruebaDano;
+
+                    return (!mes || mes === mesActual) &&
+                        (!tipo || tipo === r.tipoUtensilio) &&
+                        (!estado || estado === estadoParaFiltrar) && // Compara con el texto extraído
+                        (!aprobacion || aprobacion === aprobacionActual);
+                });
+
+                if (filtrados.length === 0) {
+                    tableBody.innerHTML = `<tr><td colspan="8" class="text-center py-4">No hay resultados</td></tr>`;
+                    return;
+                }
+
+                tableBody.innerHTML = filtrados.map(r => `
+                    <tr>
+                        <td>${formatDate(r.fecha)}</td>
+                        <td>${r.responsable}</td>
+                        <td><span class="badge bg-info">${r.tipoUtensilio}</span></td>
+                        <td>${r.nombreUtensilio}</td>
+                        <td>${getStatusBadge(r.descripcionDano)}</td>
+                        <td>${getApprovalBadge(r.apruebaDano)}</td>
+                        <td>
+                            ${r.fotoUrl ? `
+                                <button class="btn btn-sm btn-outline-primary" onclick="showPhoto('${r.fotoUrl.replace(/'/g, "\\'")}')">
+                                    <i class="fas fa-image me-1"></i> Ver Foto
+                                </button>` : '<span class="text-muted">Sin Foto</span>'}
+                        </td>
+                        <td><span class="text-muted">🔒</span></td>
+                    </tr>
+                `).join('');
+            } catch (err) {
+                console.error('❌ Error al cargar Google Sheets:', err);
+                tableBody.innerHTML = `<tr><td colspan="8" class="text-center text-danger py-4">Error al cargar datos. ${err.message || 'Verifique la URL de la hoja, el nombre de la pestaña "Utensilios" o los permisos.'}</td></tr>`;
             }
-        };
-
-        reader.onerror = () => reject(reader.error);
-        reader.readAsDataURL(data.foto);
-    });
-}
-
-// Agregar listeners a los filtros
-['filtroMes', 'filtroTipo', 'filtroEstado', 'filtroAprobacion'].forEach(id => {
-    document.getElementById(id).addEventListener('change', loadDatabase);
-});
-
-// FUNCIÓN CORREGIDA PARA CARGAR DATOS Y MOSTRAR FOTOS/FECHAS CORRECTAMENTE
-async function loadDatabase() {
-    const tableBody = document.getElementById('databaseTable');
-    tableBody.innerHTML = `<tr><td colspan="8" class="text-center py-4">Cargando...</td></tr>`;
-
-    const mes = document.getElementById('filtroMes').value;
-    const tipo = document.getElementById('filtroTipo').value;
-    const estado = document.getElementById('filtroEstado').value;
-    const aprobacion = document.getElementById('filtroAprobacion').value;
-
-    try {
-        const sheetId = GOOGLE_SHEETS_URL.match(/\/d\/(.*?)\//)[1];
-        const gvizUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&sheet=Utensilios`;
-
-        const response = await fetch(gvizUrl);
-        const text = await response.text();
-
-        // Parsing del JSONP mejorado
-        const jsonStart = text.indexOf('{');
-        const jsonEnd = text.lastIndexOf('}');
-        let json;
-        if (jsonStart !== -1 && jsonEnd !== -1) {
-            const jsonString = text.substring(jsonStart, jsonEnd + 1);
-            json = JSON.parse(jsonString);
-        } else {
-            throw new Error('No se pudo parsear la respuesta JSON de Google Sheets.');
         }
 
-        const rows = json.table.rows.map(r => {
-            // Corregir el manejo de la fecha - Google Sheets puede devolver diferentes formatos
-            let fechaRaw = r.c[1]?.v || '';
-            let fechaFormateada = '';
-            
-            if (fechaRaw) {
-                // Si es un número (fecha serial de Excel/Google Sheets)
-                if (typeof fechaRaw === 'number') {
-                    // Convertir fecha serial a fecha normal
-                    const date = new Date((fechaRaw - 25569) * 86400 * 1000);
-                    fechaFormateada = date.toISOString().split('T')[0]; // YYYY-MM-DD
-                } else if (typeof fechaRaw === 'string') {
-                    // Si ya es una cadena, verificar formato
-                    if (fechaRaw.includes('Date(')) {
-                        // Formato Date() de Google Sheets
-                        const timestamp = fechaRaw.match(/Date\((\d+)\)/);
-                        if (timestamp) {
-                            const date = new Date(parseInt(timestamp[1]));
-                            fechaFormateada = date.toISOString().split('T')[0];
-                        }
-                    } else if (fechaRaw.match(/^\d{4}-\d{2}-\d{2}$/)) {
-                        // Ya está en formato YYYY-MM-DD
-                        fechaFormateada = fechaRaw;
-                    } else {
-                        // Intentar parsear como fecha
-                        const date = new Date(fechaRaw);
-                        if (!isNaN(date.getTime())) {
-                            fechaFormateada = date.toISOString().split('T')[0];
-                        }
-                    }
-                }
+        // FUNCION AJUSTADA PARA EL FORMATO DE FECHA
+        function formatDate(dateString) {
+            if (!dateString || typeof dateString !== 'string' || dateString.length !== 10) {
+                return 'Fecha inválida';
             }
 
-            // Mejorar el manejo de la URL de la foto
-            let fotoUrl = r.c[7]?.v || '';
-            
-            // Si la URL contiene 'drive.google.com', convertirla a formato de visualización directa
-            if (fotoUrl && fotoUrl.includes('drive.google.com')) {
-                // Extraer el ID del archivo de diferentes formatos de URL de Google Drive
-                let fileId = '';
-                
-                if (fotoUrl.includes('/file/d/')) {
-                    fileId = fotoUrl.match(/\/file\/d\/(.*?)\//)?.[1];
-                } else if (fotoUrl.includes('id=')) {
-                    fileId = fotoUrl.match(/id=([^&]*)/)?.[1];
-                }
-                
-                if (fileId) {
-                    // Usar la URL de visualización directa de Google Drive
-                    fotoUrl = `https://drive.google.com/uc?export=view&id=${fileId}`;
-                }
+            // Asume dateString está en formato YYYY-MM-DD
+            const parts = dateString.split('-');
+            if (parts.length === 3 && parts[0].length === 4 && parts[1].length === 2 && parts[2].length === 2) {
+                // Reordena a DD-MM-YYYY
+                return `${parts[2]}-${parts[1]}-${parts[0]}`;
             }
-
-            return {
-                fecha: fechaFormateada,
-                responsable: r.c[2]?.v || '',
-                tipoUtensilio: r.c[3]?.v || '',
-                nombreUtensilio: r.c[4]?.v || '',
-                descripcionDano: r.c[5]?.v || '',
-                apruebaDano: r.c[6]?.v || '',
-                fotoUrl: fotoUrl
-            };
-        });
-
-        const filtrados = rows.filter(r => {
-            if (!r.fecha || r.fecha === '') return false;
-
-            const [yyyy, mm] = r.fecha.split('-');
-            const mesActual = mm;
-
-            // Determinar el estado basado en la descripción
-            const estadoParaFiltrar = determinarEstado(r.descripcionDano);
-            const aprobacionActual = r.apruebaDano;
-
-            return (!mes || mes === mesActual) &&
-                (!tipo || tipo === r.tipoUtensilio) &&
-                (!estado || estado === estadoParaFiltrar) &&
-                (!aprobacion || aprobacion === aprobacionActual);
-        });
-
-        if (filtrados.length === 0) {
-            tableBody.innerHTML = `<tr><td colspan="8" class="text-center py-4">No hay resultados</td></tr>`;
-            return;
+            return 'Fecha inválida';
         }
 
-        tableBody.innerHTML = filtrados.map((r, index) => `
-            <tr>
-                <td>${formatDate(r.fecha)}</td>
-                <td>${r.responsable}</td>
-                <td><span class="badge bg-info">${r.tipoUtensilio}</span></td>
-                <td>${r.nombreUtensilio}</td>
-                <td>${getStatusBadge(r.descripcionDano)}</td>
-                <td>${getApprovalBadge(r.apruebaDano)}</td>
-                <td>
-                    ${r.fotoUrl ? `
-                        <button class="btn btn-sm btn-outline-primary" onclick="showPhoto('${r.fotoUrl.replace(/'/g, "\\'")}', '${r.nombreUtensilio.replace(/'/g, "\\'")}')">
-                            <i class="fas fa-image me-1"></i> Ver Foto
-                        </button>` : '<span class="text-muted">Sin Foto</span>'}
-                </td>
-                <td><span class="text-muted">🔒</span></td>
-            </tr>
-        `).join('');
-    } catch (err) {
-        console.error('❌ Error al cargar Google Sheets:', err);
-        tableBody.innerHTML = `<tr><td colspan="8" class="text-center text-danger py-4">Error al cargar datos: ${err.message}</td></tr>`;
-    }
-}
+        function getStatusBadge(descripcion) {
+            const desc = descripcion.toLowerCase();
+            if (desc.includes('dañado') || desc.includes('roto') || desc.includes('quebrado')
+                || desc.includes('partido') || desc.includes('no sirve') || desc.includes('caduc')
+                || desc.includes('vencido') || desc.includes('expirado')) {
+                return '<span class="status-badge status-damaged">Dañado</span>';
+            } else {
+                return '<span class="status-badge status-soon">Pronto a Dañar</span>';
+            }
+        }
 
-// FUNCIÓN CORREGIDA PARA EL FORMATO DE FECHA
-function formatDate(dateString) {
-    if (!dateString || typeof dateString !== 'string') {
-        return 'Fecha inválida';
-    }
+        function getApprovalBadge(aprobacion) {
+            switch (aprobacion) {
+                case 'Sí':
+                    return '<span class="badge bg-success">Aprobado</span>';
+                case 'No':
+                    return '<span class="badge bg-danger">Rechazado</span>';
+                case 'Pendiente':
+                    return '<span class="badge bg-warning">Pendiente</span>';
+                default:
+                    return '<span class="badge bg-secondary">N/A</span>';
+            }
+        }
 
-    // Verificar si está en formato YYYY-MM-DD
-    if (dateString.match(/^\d{4}-\d{2}-\d{2}$/)) {
-        const [yyyy, mm, dd] = dateString.split('-');
-        return `${dd}/${mm}/${yyyy}`;
-    }
-    
-    // Intentar parsear como fecha
-    const date = new Date(dateString);
-    if (!isNaN(date.getTime())) {
-        const day = String(date.getDate()).padStart(2, '0');
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const year = date.getFullYear();
-        return `${day}/${month}/${year}`;
-    }
-    
-    return 'Fecha inválida';
-}
+        function showPhoto(url) {
+            const img = document.getElementById('modalPhoto');
+            img.src = url;
 
-// Función auxiliar para determinar el estado
-function determinarEstado(descripcion) {
-    const desc = descripcion.toLowerCase();
-    if (desc.includes('dañado') || desc.includes('roto') || desc.includes('quebrado') ||
-        desc.includes('partido') || desc.includes('no sirve') || desc.includes('caduc') ||
-        desc.includes('vencido') || desc.includes('expirado')) {
-        return 'Dañado';
-    }
-    return 'Pronto a Dañar';
-}
+            const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('photoModal'));
+            modal.show();
+        }
 
-function getStatusBadge(descripcion) {
-    const estado = determinarEstado(descripcion);
-    if (estado === 'Dañado') {
-        return '<span class="status-badge status-damaged">Dañado</span>';
-    } else {
-        return '<span class="status-badge status-soon">Pronto a Dañar</span>';
-    }
-}
+        function deleteRecord(id) {
+            if (confirm('¿Estás seguro de que quieres eliminar este registro?')) {
+                showErrorMessage('Función de eliminación no implementada para Google Sheets.');
+            }
+        }
 
-function getApprovalBadge(aprobacion) {
-    switch (aprobacion) {
-        case 'Sí':
-            return '<span class="badge bg-success">Aprobado</span>';
-        case 'No':
-            return '<span class="badge bg-danger">Rechazado</span>';
-        case 'Pendiente':
-            return '<span class="badge bg-warning">Pendiente</span>';
-        default:
-            return '<span class="badge bg-secondary">N/A</span>';
-    }
-}
+        function resetForm() {
+            document.getElementById('registerForm').reset();
+            document.getElementById('fecha').valueAsDate = new Date();
+            document.getElementById('photoPreview').style.display = 'none';
+            document.getElementById('previewImg').src = '';
+        }
 
-// FUNCIÓN CORREGIDA PARA MOSTRAR FOTOS
-function showPhoto(url, nombreUtensilio = 'Utensilio') {
-    const img = document.getElementById('modalPhoto');
-    const modalTitle = document.querySelector('#photoModal .modal-title');
-    
-    // Limpiar imagen anterior
-    img.src = '';
-    img.style.display = 'none';
-    
-    // Mostrar loading
-    const modalBody = document.querySelector('#photoModal .modal-body');
-    modalBody.innerHTML = `
-        <div class="text-center">
-            <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">Cargando...</span>
-            </div>
-            <p class="mt-2">Cargando imagen...</p>
-        </div>
-    `;
-    
-    // Actualizar título
-    modalTitle.textContent = `Foto: ${nombreUtensilio}`;
-    
-    // Mostrar modal
-    const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('photoModal'));
-    modal.show();
-    
-    // Cargar imagen
-    const newImg = new Image();
-    newImg.onload = function() {
-        modalBody.innerHTML = `<img id="modalPhoto" class="img-fluid rounded" alt="Foto del utensilio" src="${url}">`;
-    };
-    
-    newImg.onerror = function() {
-        modalBody.innerHTML = `
-            <div class="text-center text-danger">
-                <i class="fas fa-exclamation-triangle fa-3x mb-3"></i>
-                <p>Error al cargar la imagen</p>
-                <small class="text-muted">Verifique que la URL sea correcta y que la imagen esté disponible</small>
-            </div>
-        `;
-    };
-    
-    newImg.src = url;
-}
+        function showSuccessMessage(message) {
+            const toast = createToast(message, 'success');
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
 
-function deleteRecord(id) {
-    if (confirm('¿Estás seguro de que quieres eliminar este registro?')) {
-        showErrorMessage('Función de eliminación no implementada para Google Sheets.');
-    }
-}
+        function showErrorMessage(message) {
+            const toast = createToast(message, 'danger');
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 5000);
+        }
 
-function resetForm() {
-    document.getElementById('registerForm').reset();
-    document.getElementById('fecha').valueAsDate = new Date();
-    document.getElementById('photoPreview').style.display = 'none';
-    document.getElementById('previewImg').src = '';
-}
+        function createToast(message, type) {
+            const toast = document.createElement('div');
+            toast.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+            toast.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+            toast.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            return toast;
+        }
 
-function showSuccessMessage(message) {
-    const toast = createToast(message, 'success');
-    document.body.appendChild(toast);
-    setTimeout(() => toast.remove(), 3000);
-}
+        function cerrarSesion() {
+            sessionStorage.clear();
 
-function showErrorMessage(message) {
-    const toast = createToast(message, 'danger');
-    document.body.appendChild(toast);
-    setTimeout(() => toast.remove(), 5000);
-}
+            const overlay = document.createElement('div');
+            overlay.style.cssText = `
+                position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+                background: rgba(0,0,0,0.8); z-index: 9999;
+                display: flex; justify-content: center; align-items: center;
+                color: white; font-size: 1.5rem; text-align: center;
+            `;
+            overlay.innerHTML = `
+                <div>
+                    <i class="fas fa-sign-out-alt fa-3x mb-3"></i>
+                    <p>Cerrando sesión...</p>
+                </div>
+            `;
+            document.body.appendChild(overlay);
 
-function createToast(message, type) {
-    const toast = document.createElement('div');
-    toast.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
-    toast.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
-    toast.innerHTML = `
-        ${message}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    `;
-    return toast;
-}
-
-function cerrarSesion() {
-    sessionStorage.clear();
-
-    const overlay = document.createElement('div');
-    overlay.style.cssText = `
-        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-        background: rgba(0,0,0,0.8); z-index: 9999;
-        display: flex; justify-content: center; align-items: center;
-        color: white; font-size: 1.5rem; text-align: center;
-    `;
-    overlay.innerHTML = `
-        <div>
-            <i class="fas fa-sign-out-alt fa-3x mb-3"></i>
-            <p>Cerrando sesión...</p>
-        </div>
-    `;
-    document.body.appendChild(overlay);
-
-    setTimeout(() => {
-        window.location.href = 'longevus_login.html';
-    }, 1500);
-}
+            setTimeout(() => {
+                window.location.href = 'longevus_login.html';
+            }, 1500);
+        }
 
     </script>
 </body>
