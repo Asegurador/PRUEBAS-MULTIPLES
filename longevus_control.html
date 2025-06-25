@@ -814,10 +814,17 @@
 
                 const filtrados = rows.filter(r => {
                     // Si r.fecha es "Fecha inválida", no podemos dividirla
-                    if (r.fecha === 'Fecha inválida' || !r.fecha) return false;
-
-                    const [yyyy, mm] = r.fecha.split('-'); // Extrae el mes del formato YYYY-MM-DD
-                    const mesActual = mm;
+                    
+                    let mesDeFila = '';
+                    const dateMatch = r.fecha.match(/Date\((\d{4}),(\d{1,2}),(\d{1,2})\)/);
+                    if (dateMatch) {
+                        // El mes de Google Sheets (dateMatch[2]) es 0-indexado.
+                        // Para comparar con los valores del filtro (01-12), sumamos 1 y formateamos.
+                        mesDeFila = String(parseInt(dateMatch[2]) + 1).padStart(2, '0');
+                    } else if (r.fecha.length === 10 && r.fecha.includes('-')) {
+                        // En caso de que alguna fecha venga como YYYY-MM-DD
+                        mesDeFila = r.fecha.split('-')[1];
+                    }
 
                     // Asegura que el estado para filtrar sea el mismo que se define en getStatusBadge
                     // Extrae solo el texto del badge para la comparación
