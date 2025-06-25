@@ -404,15 +404,14 @@
                                     <div class="col-md-6">
                                         <label class="form-label"><i class="fas fa-camera me-2"></i>Adjuntar
                                             Foto</label>
-                                        <input type="file" class="form-control" id="foto" accept="image/*" capture="environment" required>
+                                            <input type="file" id="foto" class="form-control" accept="image/*" required onchange="handlePhotoPreview(event)">
                                     </div>
                                     <div class="col-12" id="photoPreview" style="display: none;">
                                         <img id="previewImg" class="photo-preview" alt="Vista previa">
                                     </div>
                                 </div>
                                 <div class="text-center mt-4">
-                                    <button type="submit" class="btn btn-primary btn-lg px-5">
-                                        <i class="fas fa-save me-2"></i>Guardar Registro
+                                    <button type="submit" class="btn btn-primary btn-lg px-5"> <i class="fas fa-save me-2"></i>Guardar Registro
                                     </button>
                                 </div>
                             </form>
@@ -531,13 +530,11 @@
       </div>
 
       <div class="modal-body p-4 text-center position-relative">
-        <!-- Imagen principal -->
         <img id="modalPhoto"
              class="img-fluid rounded-3 shadow-lg border border-light"
              alt="Foto del utensilio"
              style="max-height: 60vh; object-fit: contain; transition: transform 0.3s ease;" />
 
-        <!-- Botón flotante de pantalla completa -->
         <button id="fullscreenBtn"
                 class="btn btn-light position-absolute top-0 end-0 m-3 shadow"
                 onclick="toggleFullScreenImage()"
@@ -545,12 +542,10 @@
           <i class="fas fa-expand fa-lg"></i>
         </button>
 
-        <!-- Descripción debajo de la imagen -->
         <div id="modalDescription"
              class="mt-4 px-3 text-light text-wrap"
              style="font-size: 1.1rem;">
-          <!-- Aquí se inyecta la descripción dinámicamente -->
-        </div>
+          </div>
       </div>
 
       <div class="modal-footer border-0 px-4 pb-4 d-flex justify-content-end">
@@ -584,6 +579,18 @@
             setupInactivityTimer();
         });
 
+        // Placeholder for authentication verification (you need to implement this based on your login logic)
+        function verificarAutenticacion() {
+            // In a real application, you'd check for a token, session, etc.
+            // For now, let's just set a default user or get it from sessionStorage if you have it.
+            const user = sessionStorage.getItem('loggedInUser') || 'Usuario Invitado';
+            updateCurrentUserDisplay(user);
+            showModule('home'); // Ensure home module is shown on load
+        }
+
+        function updateCurrentUserDisplay(username) {
+            document.getElementById('currentUser').textContent = username;
+        }
 
 
         function paginaPrincipal() {
@@ -641,12 +648,13 @@
             });
 
             if (module === 'home') {
-                document.querySelector('.nav-link[href="#"]').classList.add('active');
+                document.querySelector('.nav-link[onclick="showModule(\'home\')"]').classList.add('active');
             } else if (module === 'register') {
                 document.querySelector('.nav-link[onclick="showModule(\'register\')"]').classList.add('active');
+                resetForm(); // ✅ Esto asegura que el formulario esté limpio y la fecha por defecto
             } else if (module === 'database') {
                 document.querySelector('.nav-link[onclick="showModule(\'database\')"]').classList.add('active');
-                loadDatabase(); // Recarga la base de datos cada vez que se muestra
+                loadDatabase(); // Recarga la base de datos
             }
 
             currentModule = module;
@@ -654,15 +662,24 @@
 
         function handlePhotoPreview(event) {
             const file = event.target.files[0];
+            const previewContainer = document.getElementById('photoPreview');
+            const previewImage = document.getElementById('previewImg');
+
+            if (!previewContainer || !previewImage) return;
+
             if (file) {
                 const reader = new FileReader();
                 reader.onload = function (e) {
-                    document.getElementById('previewImg').src = e.target.result;
-                    document.getElementById('photoPreview').style.display = 'block';
+                    previewImage.src = e.target.result;
+                    previewContainer.style.display = 'block';
                 };
                 reader.readAsDataURL(file);
+            } else {
+                previewContainer.style.display = 'none';
+                previewImage.src = '';
             }
         }
+
 
         function handleSubmit(event) {
             event.preventDefault();
@@ -792,16 +809,16 @@
                 }
 
                 const rows = json.table.rows.map(r => {
-    return {
-        fecha: r.c[1]?.v || '',
-        responsable: r.c[2]?.v || '',
-        tipoUtensilio: r.c[3]?.v || '',
-        nombreUtensilio: r.c[4]?.v || '',
-        descripcionDano: r.c[5]?.v || '',
-        apruebaDano: r.c[6]?.v || '',
-        fotoUrl: r.c[7]?.v || '' // Columna H: la URL completa del thumbnail
-    };
-});
+                    return {
+                        fecha: r.c[1]?.v || '',
+                        responsable: r.c[2]?.v || '',
+                        tipoUtensilio: r.c[3]?.v || '',
+                        nombreUtensilio: r.c[4]?.v || '',
+                        descripcionDano: r.c[5]?.v || '',
+                        apruebaDano: r.c[6]?.v || '',
+                        fotoUrl: r.c[7]?.v || '' // Columna H: la URL completa del thumbnail
+                    };
+                });
 
 
                 const filtrados = rows.filter(r => {
@@ -818,7 +835,7 @@
                     const estadoParaFiltrar = tempDiv.textContent.trim();
 
                     const aprobacionActual = r.apruebaDano;
-                    
+
                     return (!mesFiltro || mesFiltro === mesDeFila) &&
                         (!tipo || tipo === r.tipoUtensilio) &&
                         (!estado || estado === estadoParaFiltrar) &&
@@ -911,14 +928,6 @@
             }
         }
 
-        function showPhoto(url) {
-            const img = document.getElementById('modalPhoto');
-            img.src = url;
-
-            const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('photoModal'));
-            modal.show();
-        }
-
         function deleteRecord(id) {
             if (confirm('¿Estás seguro de que quieres eliminar este registro?')) {
                 showErrorMessage('Función de eliminación no implementada para Google Sheets.');
@@ -926,11 +935,26 @@
         }
 
         function resetForm() {
-            document.getElementById('registerForm').reset();
-            document.getElementById('fecha').valueAsDate = new Date();
-            document.getElementById('photoPreview').style.display = 'none';
-            document.getElementById('previewImg').src = '';
+            const form = document.getElementById('registerForm');
+            const fechaInput = document.getElementById('fecha');
+            const previewContainer = document.getElementById('photoPreview');
+            const previewImage = document.getElementById('previewImg');
+
+            if (form) form.reset();
+
+            if (fechaInput) {
+                fechaInput.valueAsDate = new Date(); // ✅ fecha por defecto
+            }
+
+            if (previewContainer) {
+                previewContainer.style.display = 'none'; // ✅ ocultar el contenedor
+            }
+
+            if (previewImage) {
+                previewImage.src = ''; // ✅ limpiar imagen
+            }
         }
+
 
         function showSuccessMessage(message) {
             const toast = createToast(message, 'success');
@@ -977,69 +1001,67 @@
                 window.location.href = 'longevus_login.html';
             }, 1500);
         }
-              
-              function toggleZoom(img) {
-  if (img.style.transform === 'scale(2)') {
-    img.style.transform = 'scale(1)';
-    img.style.cursor = 'zoom-in';
-  } else {
-    img.style.transform = 'scale(2)';
-    img.style.cursor = 'zoom-out';
-  }
-}
 
-              function showPhoto(url, descripcion = '') {
-  const img = document.getElementById('modalPhoto');
-  const desc = document.getElementById('modalDescription');
+        function toggleZoom(img) {
+            if (img.style.transform === 'scale(2)') {
+                img.style.transform = 'scale(1)';
+                img.style.cursor = 'zoom-in';
+            } else {
+                img.style.transform = 'scale(2)';
+                img.style.cursor = 'zoom-out';
+            }
+        }
 
-  // ✅ Usamos la URL tal como viene (thumbnail)
-  img.src = url;
-  img.style.transform = 'scale(1)';
-  img.style.cursor = 'zoom-in';
+        function showPhoto(url, descripcion = '') {
+            const img = document.getElementById('modalPhoto');
+            const desc = document.getElementById('modalDescription');
 
-  // Mostrar la descripción
-  desc.textContent = descripcion;
+            // ✅ Usamos la URL tal como viene (thumbnail)
+            img.src = url;
+            img.style.transform = 'scale(1)';
+            img.style.cursor = 'zoom-in';
 
-  // Mostrar el modal
-  const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('photoModal'));
-  modal.show();
-}
+            // Mostrar la descripción
+            desc.textContent = descripcion;
+
+            // Mostrar el modal
+            const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('photoModal'));
+            modal.show();
+        }
 
 
-              
-function toggleFullScreenImage() {
-  const img = document.getElementById('modalPhoto');
-  const desc = document.getElementById('modalDescription');
-  const btn = document.getElementById('fullscreenBtn');
+        function toggleFullScreenImage() {
+            const img = document.getElementById('modalPhoto');
+            const desc = document.getElementById('modalDescription');
+            const btn = document.getElementById('fullscreenBtn');
 
-  if (!document.fullscreenElement) {
-    // Ocultar extras
-    desc.style.display = 'none';
-    btn.style.display = 'none';
+            if (!document.fullscreenElement) {
+                // Ocultar extras
+                desc.style.display = 'none';
+                btn.style.display = 'none';
 
-    // Activar fullscreen
-    if (img.requestFullscreen) img.requestFullscreen();
-    else if (img.webkitRequestFullscreen) img.webkitRequestFullscreen();
-    else if (img.msRequestFullscreen) img.msRequestFullscreen();
-  } else {
-    // Salir de fullscreen y restaurar elementos
-    if (document.exitFullscreen) document.exitFullscreen();
-    else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
-    else if (document.msExitFullscreen) document.msExitFullscreen();
-  }
-}
+                // Activar fullscreen
+                if (img.requestFullscreen) img.requestFullscreen();
+                else if (img.webkitRequestFullscreen) img.webkitRequestFullscreen();
+                else if (img.msRequestFullscreen) img.msRequestFullscreen();
+            } else {
+                // Salir de fullscreen y restaurar elementos
+                if (document.exitFullscreen) document.exitFullscreen();
+                else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+                else if (document.msExitFullscreen) document.msExitFullscreen();
+            }
+        }
 
-// Al salir de fullscreen, restaurar elementos visibles
-document.addEventListener('fullscreenchange', () => {
-  const desc = document.getElementById('modalDescription');
-  const btn = document.getElementById('fullscreenBtn');
+        // Al salir de fullscreen, restaurar elementos visibles
+        document.addEventListener('fullscreenchange', () => {
+            const desc = document.getElementById('modalDescription');
+            const btn = document.getElementById('fullscreenBtn');
 
-  if (!document.fullscreenElement) {
-    desc.style.display = '';
-    btn.style.display = '';
-  }
-});
-
+            if (!document.fullscreenElement) {
+                desc.style.display = '';
+                btn.style.display = '';
+            }
+        });
 
 
     </script>
