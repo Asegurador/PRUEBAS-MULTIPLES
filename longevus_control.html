@@ -780,7 +780,7 @@
                     let rawDate = r.c[1]?.v || '';
                     // 1. Obtén la URL completa de Google Drive de la hoja
                     let thumbnailUrl = r.c[7]?.v || ''; // columna H = thumbnail
-                    let fileId = r.c[8]?.v || ''; // columna I = id (opcional si quieres mostrarlo)
+                    fileId = r.c[8]?.v || ''; // columna I = id (opcional si quieres mostrarlo)
 
                     // 2. Limpia la URL de Drive de posibles comillas simples extra (si las hay)
                     driveUrlFromSheet = driveUrlFromSheet.replace(/^'|'$/g, '');
