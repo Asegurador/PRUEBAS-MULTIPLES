@@ -779,7 +779,8 @@
                 const rows = json.table.rows.map(r => {
                     let rawDate = r.c[1]?.v || '';
                     // 1. Obtén la URL completa de Google Drive de la hoja
-                    let driveUrlFromSheet = r.c[8]?.v || '';
+                    let thumbnailUrl = r.c[7]?.v || ''; // columna H = thumbnail
+                    let fileId = r.c[8]?.v || ''; // columna I = id (opcional si quieres mostrarlo)
 
                     // 2. Limpia la URL de Drive de posibles comillas simples extra (si las hay)
                     driveUrlFromSheet = driveUrlFromSheet.replace(/^'|'$/g, '');
@@ -792,8 +793,7 @@
                     }
 
                     // 4. Construye la nueva URL que apunta a tu Apps Script para servir la imagen
-                    // Asegúrate de que APPS_SCRIPT_WEB_APP_URL esté definida correctamente en tu script.
-                    let appsScriptImageUrl = fileId ? `https://drive.google.com/thumbnail?id=${fileId}` : '';
+                    let appsScriptImageUrl = thumbnailUrl;
 
                     return {
                         fecha: rawDate,
