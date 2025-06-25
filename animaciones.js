@@ -2,7 +2,7 @@
 // Protecciones avanzadas para webs
 // Archivo: seguridad_pro.js
 // =============================
-
+ 
 // 1. Bloquear clic derecho
 window.addEventListener('contextmenu', e => e.preventDefault());
 
