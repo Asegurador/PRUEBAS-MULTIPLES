@@ -542,8 +542,6 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
-
     <script>
         // Variables globales
         let currentModule = 'home';
@@ -759,7 +757,7 @@
             const tableBody = document.getElementById('databaseTable');
             tableBody.innerHTML = `<tr><td colspan="8" class="text-center py-4">Cargando...</td></tr>`;
 
-            const mes = document.getElementById('filtroMes').value;
+            const mesFiltro = document.getElementById('filtroMes').value; // Renombrado a mesFiltro para consistencia
             const tipo = document.getElementById('filtroTipo').value;
             const estado = document.getElementById('filtroEstado').value;
             const aprobacion = document.getElementById('filtroAprobacion').value;
@@ -798,8 +796,10 @@
                     // Columna 7 (Aprueba Daño) -> index 6
                     // Columna 8 (URL Foto) -> index 7
 
-                    let rawDate = r.c[1]?.v || ''; // Fecha en formato YYYY-MM-DD
+                    let rawDate = r.c[1]?.v || ''; // Fecha en formato "Date(YYYY,M,D)" o "YYYY-MM-DD"
                     let fotoUrl = r.c[7]?.v || ''; // URL de la foto tal cual la guarda Apps Script
+
+                    console.log("Raw date from sheet:", rawDate);
 
                     return {
                         fecha: rawDate,
@@ -813,23 +813,30 @@
                 });
 
                 const filtrados = rows.filter(r => {
-                    // Si r.fecha es "Fecha inválida", no podemos dividirla
-                    if (r.fecha === 'Fecha inválida' || !r.fecha) return false;
-
-                    const [yyyy, mm] = r.fecha.split('-'); // Extrae el mes del formato YYYY-MM-DD
-                    const mesActual = mm;
+                    // --- INICIO DE CAMBIO PARA EL FILTRO DE FECHA ---
+                    let mesDeFila = '';
+                    const dateMatch = r.fecha.match(/Date\((\d{4}),(\d{1,2}),(\d{1,2})\)/);
+                    if (dateMatch) {
+                        // El mes de Google Sheets (dateMatch[2]) es 0-indexado.
+                        // Para comparar con los valores del filtro (01-12), sumamos 1 y formateamos.
+                        mesDeFila = String(parseInt(dateMatch[2]) + 1).padStart(2, '0');
+                    } else if (r.fecha.length === 10 && r.fecha.includes('-')) {
+                        // En caso de que alguna fecha venga como YYYY-MM-DD
+                        mesDeFila = r.fecha.split('-')[1];
+                    }
+                    // --- FIN DE CAMBIO PARA EL FILTRO DE FECHA ---
 
                     // Asegura que el estado para filtrar sea el mismo que se define en getStatusBadge
-                    // Extrae solo el texto del badge para la comparación
                     const tempDiv = document.createElement('div');
                     tempDiv.innerHTML = getStatusBadge(r.descripcionDano);
                     const estadoParaFiltrar = tempDiv.textContent.trim();
 
                     const aprobacionActual = r.apruebaDano;
 
-                    return (!mes || mes === mesActual) &&
+                    // AQUI ESTA LA LINEA CORREGIDA PARA EL FILTRO DE MES
+                    return (!mesFiltro || mesFiltro === mesDeFila) && // Usa mesFiltro y mesDeFila
                         (!tipo || tipo === r.tipoUtensilio) &&
-                        (!estado || estado === estadoParaFiltrar) && // Compara con el texto extraído
+                        (!estado || estado === estadoParaFiltrar) &&
                         (!aprobacion || aprobacion === aprobacionActual);
                 });
 
@@ -838,7 +845,89 @@
                     return;
                 }
 
-                tableBody.innerHTML = filtrados.map(r => `
+                // Limpiar la tabla antes de añadir los nuevos resultados
+                tableBody.innerHTML = '';
+
+                filtrados.forEach((r, index) => {
+                    const row = tableBody.insertRow();
+                    // ID (no visible, pero puede ser útil si lo necesitas)
+                    // row.insertCell(0).textContent = r.id; 
+                    row.insertCell(0).textContent = r.responsable;
+                    row.insertCell(1).textContent = r.tipoUtensilio;
+                    row.insertCell(2).textContent = r.nombreUtensilio;
+                    row.insertCell(3).innerHTML = getStatusBadge(r.descripcionDano); // Estado del daño
+                    row.insertCell(4).textContent = r.apruebaDano; // Quién aprueba
+
+                    // Formatear la fecha para mostrarla correctamente
+                    const formattedDate = formatDate(r.fecha); // Reutiliza la función formatDate
+                    row.insertCell(5).textContent = formattedDate;
+
+                    // Botón "Ver Foto"
+                    const photoCell = row.insertCell(6);
+                    if (r.fotoUrl) {
+                        const verFotoBtn = document.createElement('button');
+                        verFotoBtn.textContent = 'Ver Foto';
+                        verFotoBtn.className = 'btn btn-info btn-sm';
+                        verFotoBtn.onclick = () => showPhoto(r.fotoUrl);
+                        photoCell.appendChild(verFotoBtn);
+                    } else {
+                        photoCell.textContent = 'N/A';
+                    }
+
+                    // Botón "Ver Detalle" - para ver descripción completa
+                    const detailCell = row.insertCell(7);
+                    const verDetalleBtn = document.createElement('button');
+                    verDetalleBtn.textContent = 'Ver Detalle';
+                    verDetalleBtn.className = 'btn btn-primary btn-sm';
+                    // Pasa la descripción al modal
+                    verDetalleBtn.onclick = () => showDetail(r.descripcionDano);
+                    detailCell.appendChild(verDetalleBtn);
+                });
+
+            } catch (err) {
+                console.error('Error al cargar Google Sheets:', err);
+                tableBody.innerHTML = `<tr><td colspan="8" class="text-center py-4 text-danger">Error al cargar datos: ${err.message}</td></tr>`;
+                showToast(`Error al cargar datos: ${err.message}`, 'danger');
+            }
+        }
+
+        // FUNCION AJUSTADA PARA EL FORMATO DE FECHA (asegúrate de que esta esté definida también)
+        function formatDate(dateString) {
+            console.log("formatDate received:", dateString, "Type:", typeof dateString);
+
+            if (!dateString || typeof dateString !== 'string') {
+                return 'Fecha inválida';
+            }
+
+            let date;
+
+            // Intenta parsear el formato Date(YYYY,M,D) de Google Sheets
+            const dateMatch = dateString.match(/Date\((\d{4}),(\d{1,2}),(\d{1,2})\)/);
+            if (dateMatch) {
+                const year = parseInt(dateMatch[1]);
+                const month = parseInt(dateMatch[2]); // Meses en JS son 0-11
+                const day = parseInt(dateMatch[3]);
+                date = new Date(year, month, day);
+            } else if (dateString.length === 10 && dateString.includes('-')) {
+                // Intenta parsear el formato YYYY-MM-DD
+                const parts = dateString.split('-');
+                if (parts.length === 3) {
+                    date = new Date(parts[0], parseInt(parts[1]) - 1, parts[2]); // Restar 1 al mes
+                }
+            }
+
+            if (date instanceof Date && !isNaN(date.getTime())) {
+                const day = String(date.getDate()).padStart(2, '0');
+                const month = String(date.getMonth() + 1).padStart(2, '0'); // Sumar 1 al mes
+                const year = date.getFullYear();
+                return `${day}-${month}-${year}`;
+            }
+
+            return 'Fecha inválida';
+        }
+
+
+        tableBody.innerHTML = filtrados.map(r => `
                     <tr>
                         <td>${formatDate(r.fecha)}</td>
                         <td>${r.responsable}</td>
@@ -855,24 +944,42 @@
                         <td><span class="text-muted">🔒</span></td>
                     </tr>
                 `).join('');
-            } catch (err) {
-                console.error('❌ Error al cargar Google Sheets:', err);
-                tableBody.innerHTML = `<tr><td colspan="8" class="text-center text-danger py-4">Error al cargar datos. ${err.message || 'Verifique la URL de la hoja, el nombre de la pestaña "Utensilios" o los permisos.'}</td></tr>`;
-            }
-        }
+            
+        
+    
 
         // FUNCION AJUSTADA PARA EL FORMATO DE FECHA
         function formatDate(dateString) {
-            if (!dateString || typeof dateString !== 'string' || dateString.length !== 10) {
+            console.log("formatDate received:", dateString, "Type:", typeof dateString); // Déjalo para depuración
+
+            if (!dateString || typeof dateString !== 'string') {
                 return 'Fecha inválida';
             }
 
-            // Asume dateString está en formato YYYY-MM-DD
-            const parts = dateString.split('-');
-            if (parts.length === 3 && parts[0].length === 4 && parts[1].length === 2 && parts[2].length === 2) {
-                // Reordena a DD-MM-YYYY
-                return `${parts[2]}-${parts[1]}-${parts[0]}`;
+            let date;
+
+            // Intenta parsear el formato Date(YYYY,M,D) de Google Sheets
+            const dateMatch = dateString.match(/Date\((\d{4}),(\d{1,2}),(\d{1,2})\)/);
+            if (dateMatch) {
+                const year = parseInt(dateMatch[1]);
+                const month = parseInt(dateMatch[2]); // Meses en JS son 0-11
+                const day = parseInt(dateMatch[3]);
+                date = new Date(year, month, day);
+            } else if (dateString.length === 10 && dateString.includes('-')) {
+                // Intenta parsear el formato YYYY-MM-DD
+                const parts = dateString.split('-');
+                if (parts.length === 3) {
+                    date = new Date(parts[0], parseInt(parts[1]) - 1, parts[2]); // Restar 1 al mes
+                }
             }
+
+            if (date instanceof Date && !isNaN(date.getTime())) {
+                const day = String(date.getDate()).padStart(2, '0');
+                const month = String(date.getMonth() + 1).padStart(2, '0'); // Sumar 1 al mes
+                const year = date.getFullYear();
+                return `${day}-${month}-${year}`;
+            }
+
             return 'Fecha inválida';
         }
 
