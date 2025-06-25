@@ -777,35 +777,17 @@
                 }
 
                 const rows = json.table.rows.map(r => {
-                    let rawDate = r.c[1]?.v || '';
-                    // 1. Obtén la URL completa de Google Drive de la hoja
-                    let thumbnailUrl = r.c[7]?.v || ''; // columna H = thumbnail
-                    fileId = r.c[8]?.v || ''; // columna I = id (opcional si quieres mostrarlo)
+    return {
+        fecha: r.c[1]?.v || '',
+        responsable: r.c[2]?.v || '',
+        tipoUtensilio: r.c[3]?.v || '',
+        nombreUtensilio: r.c[4]?.v || '',
+        descripcionDano: r.c[5]?.v || '',
+        apruebaDano: r.c[6]?.v || '',
+        fotoUrl: r.c[7]?.v || '' // Columna H: la URL completa del thumbnail
+    };
+});
 
-                    // 2. Limpia la URL de Drive de posibles comillas simples extra (si las hay)
-                    driveUrlFromSheet = driveUrlFromSheet.replace(/^'|'$/g, '');
-
-                    // 3. Extrae el ID del archivo de la URL de Drive
-                    let fileId = '';
-                    const idMatch = driveUrlFromSheet.match(/id=([a-zA-Z0-9_-]+)/);
-                    if (idMatch && idMatch[1]) {
-                        fileId = idMatch[1];
-                    }
-
-                    // 4. Construye la nueva URL que apunta a tu Apps Script para servir la imagen
-                    let appsScriptImageUrl = thumbnailUrl;
-
-                    return {
-                        fecha: rawDate,
-                        responsable: r.c[2]?.v || '',
-                        tipoUtensilio: r.c[3]?.v || '',
-                        nombreUtensilio: r.c[4]?.v || '',
-                        descripcionDano: r.c[5]?.v || '',
-                        apruebaDano: r.c[6]?.v || '',
-                        // ¡IMPORTANTE! Ahora usa la URL que apunta a tu Apps Script
-                        fotoUrl: appsScriptImageUrl
-                    };
-                });
 
                 const filtrados = rows.filter(r => {
                     let mesDeFila = '';
