@@ -778,19 +778,21 @@
 
                 const rows = json.table.rows.map(r => {
                     let rawDate = r.c[1]?.v || '';
-                    let driveUrl = r.c[7]?.v || ''; // Esta es la URL de Drive: 'https://drive.google.com/uc?export=view&id=FILE_ID'
+                    // 1. Obtén la URL completa de Google Drive de la hoja
+                    let driveUrlFromSheet = r.c[7]?.v || '';
 
-                    // Paso 1: Limpia la URL de Drive de posibles comillas simples extra
-                    driveUrl = driveUrl.replace(/^'|'$/g, '');
+                    // 2. Limpia la URL de Drive de posibles comillas simples extra (si las hay)
+                    driveUrlFromSheet = driveUrlFromSheet.replace(/^'|'$/g, '');
 
-                    // Paso 2: Extrae el ID del archivo de la URL de Drive
+                    // 3. Extrae el ID del archivo de la URL de Drive
                     let fileId = '';
-                    const idMatch = driveUrl.match(/id=([a-zA-Z0-9_-]+)/);
+                    const idMatch = driveUrlFromSheet.match(/id=([a-zA-Z0-9_-]+)/);
                     if (idMatch && idMatch[1]) {
                         fileId = idMatch[1];
                     }
 
-                    // Paso 3: Construye la nueva URL que apunta a tu Apps Script para servir la imagen
+                    // 4. Construye la nueva URL que apunta a tu Apps Script para servir la imagen
+                    // Asegúrate de que APPS_SCRIPT_WEB_APP_URL esté definida correctamente en tu script.
                     let appsScriptImageUrl = fileId ? `${APPS_SCRIPT_WEB_APP_URL}?id=${fileId}` : '';
 
                     return {
@@ -800,7 +802,8 @@
                         nombreUtensilio: r.c[4]?.v || '',
                         descripcionDano: r.c[5]?.v || '',
                         apruebaDano: r.c[6]?.v || '',
-                        fotoUrl: appsScriptImageUrl // ¡Ahora usamos la URL que apunta a tu Apps Script!
+                        // ¡IMPORTANTE! Ahora usa la URL que apunta a tu Apps Script
+                        fotoUrl: appsScriptImageUrl
                     };
                 });
 
