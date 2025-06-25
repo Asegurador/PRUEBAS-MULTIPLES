@@ -584,7 +584,7 @@
         function verificarAutenticacion() {
             // In a real application, you'd check for a token, session, etc.
             // For now, let's just set a default user or get it from sessionStorage if you have it.
-            const user = sessionStorage.getItem('loggedInUser') || 'Usuario Invitado';
+            const user = sessionStorage.getItem('usuario') || 'Usuario Invitado';
             updateCurrentUserDisplay(user);
             showModule('home'); // Ensure home module is shown on load
         }
