@@ -519,24 +519,40 @@
         </div>
     </div>
 
-    <button class="btn btn-primary floating-btn d-none d-lg-block" onclick="showModule('register')"
-        title="Registrar Utensilio">
-        <i class="fas fa-plus fa-lg"></i>
-    </button>
+    <div class="modal fade" id="photoModal" tabindex="-1" aria-labelledby="photoModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-xl">
+    <div class="modal-content bg-dark text-white border-0 rounded-4 shadow-lg">
+      <div class="modal-header border-0 px-4 pt-4">
+        <h5 class="modal-title fw-semibold" id="photoModalLabel">
+          <i class="fas fa-image me-2"></i>Vista Detallada del Utensilio
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
 
-    <div class="modal fade" id="photoModal" tabindex="-1">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Foto del Utensilio</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body text-center">
-                    <img id="modalPhoto" class="img-fluid rounded" alt="Foto del utensilio">
-                </div>
-            </div>
-        </div>
+      <div class="modal-body d-flex justify-content-center align-items-center position-relative p-4" style="min-height: 70vh;">
+        <!-- Imagen principal -->
+        <img id="modalPhoto"
+             class="img-fluid rounded-3 shadow-lg border border-light"
+             alt="Foto del utensilio"
+             style="max-height: 100%; max-width: 100%; object-fit: contain; transition: transform 0.3s ease;" />
+
+        <!-- Botón flotante para ver en pantalla completa -->
+        <button class="btn btn-light position-absolute top-0 end-0 m-3 shadow"
+                onclick="toggleFullScreenImage()"
+                title="Ver en pantalla completa">
+          <i class="fas fa-expand fa-lg"></i>
+        </button>
+      </div>
+
+      <div class="modal-footer border-0 px-4 pb-4 d-flex justify-content-end">
+        <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">
+          <i class="fas fa-times me-1"></i> Cerrar
+        </button>
+      </div>
     </div>
+  </div>
+</div>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
 
     <script>
@@ -961,6 +977,37 @@
                 window.location.href = 'longevus_login.html';
             }, 1500);
         }
+           function toggleZoom(img) {
+  if (img.style.transform === 'scale(2)') {
+    img.style.transform = 'scale(1)';
+    img.style.cursor = 'zoom-in';
+  } else {
+    img.style.transform = 'scale(2)';
+    img.style.cursor = 'zoom-out';
+  }
+}
+
+              
+  function toggleFullScreenImage() {
+  const img = document.getElementById('modalPhoto');
+  if (!document.fullscreenElement) {
+    if (img.requestFullscreen) {
+      img.requestFullscreen();
+    } else if (img.webkitRequestFullscreen) {
+      img.webkitRequestFullscreen();
+    } else if (img.msRequestFullscreen) {
+      img.msRequestFullscreen();
+    }
+  } else {
+    if (document.exitFullscreen) {
+      document.exitFullscreen();
+    } else if (document.webkitExitFullscreen) {
+      document.webkitExitFullscreen();
+    } else if (document.msExitFullscreen) {
+      document.msExitFullscreen();
+    }
+  }
+}
 
     </script>
 </body>
