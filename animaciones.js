@@ -18,15 +18,30 @@ window.addEventListener('keydown', e => {
   const key = e.key.toLowerCase();
   const tag = e.target.tagName;
 
-  const bloqueadas = [
-    'f1','f2','f3','f4','f5','f6','f7','f8','f9','f10','f11','f12',
-    'u','i','s','c','e','j','k','a','d','h'
+  // Lista de teclas individuales (F keys) para bloquear
+  const individualBlockedKeys = [
+    'f1', 'f2', 'f3', 'f4', 'f5', 'f6', 'f7', 'f8', 'f9', 'f10', 'f11', 'f12'
   ];
 
+  // Lista de caracteres para bloquear en combinación con Ctrl/Shift/Alt
+  const combinationBlockedCharacters = [
+    'u', 'i', 's', 'c', 'e', 'j', 'k', 'a', 'd', 'h', // Example: Ctrl+U (view source), Ctrl+Shift+I (devtools), Ctrl+S (save)
+    'p', // Ctrl+P (print)
+    'g', // Ctrl+G (find next)
+    'x', 'v' // Ctrl+X (cut), Ctrl+V (paste) - Use with caution, as this can affect user input
+  ];
+
+  // Check for individual blocked keys (like F keys)
+  if (individualBlockedKeys.includes(key)) {
+    e.preventDefault();
+  }
+
+  // Check for blocked combinations (Ctrl/Shift/Alt + specific character)
+  // Ensure that the key is NOT a modifier itself to avoid blocking Ctrl, Shift, Alt independently
   if (
-    ['control', 'alt', 'meta', 'shift'].includes(key) ||
-    e.ctrlKey || e.altKey || e.metaKey || e.shiftKey ||
-    bloqueadas.includes(key)
+    (e.ctrlKey || e.shiftKey || e.altKey || e.metaKey) && // Any modifier key is pressed
+    !['control', 'alt', 'meta', 'shift'].includes(key) && // The pressed key is not a modifier itself
+    combinationBlockedCharacters.includes(key) // The pressed key is in our combination blocked list
   ) {
     e.preventDefault();
   }
