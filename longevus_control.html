@@ -20,242 +20,151 @@
             --success-color: #10b981;
             --warning-color: #f59e0b;
             --danger-color: #ef4444;
+            --info-color: #3b82f6;
             --dark-color: #1f2937;
-            --light-color: #f8fafc;
-        }
-
-        * {
-            font-family: 'Poppins', sans-serif;
+            --light-color: #f3f4f6;
+            --white-color: #ffffff;
+            --gray-color: #6b7280;
         }
 
         body {
-            background: linear-gradient(135deg, #f59e0b, #1f2937, #04b330 80%, #10b981, #ef4444);
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--light-color);
+            color: var(--dark-color);
             min-height: 100vh;
-            margin: 0;
+            display: flex;
+            flex-direction: column;
         }
 
         .navbar {
-            background: rgba(255, 255, 255, 0.1) !important;
-            backdrop-filter: blur(20px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            background-color: var(--primary-color);
         }
 
-        .navbar-brand {
-            font-weight: 700;
-            font-size: 1.5rem;
-            color: white !important;
+        .navbar-brand,
+        .nav-link {
+            color: var(--white-color) !important;
         }
 
-        .navbar-nav .nav-link {
-            color: rgba(255, 255, 255, 0.9) !important;
-            font-weight: 500;
-            transition: all 0.3s ease;
+        .navbar-brand:hover,
+        .nav-link:hover {
+            color: var(--light-color) !important;
         }
 
-        .navbar-nav .nav-link:hover {
-            color: white !important;
-            transform: translateY(-2px);
+        .sidebar {
+            background-color: var(--dark-color);
+            color: var(--white-color);
+            min-height: calc(100vh - 56px);
+            padding-top: 20px;
         }
 
-        .container-fluid {
-            padding: 2rem;
+        .sidebar .nav-link {
+            color: var(--light-color);
+            padding: 10px 15px;
+            margin-bottom: 5px;
+            border-radius: 5px;
+        }
+
+        .sidebar .nav-link:hover,
+        .sidebar .nav-link.active {
+            background-color: var(--primary-color);
+            color: var(--white-color);
+        }
+
+        .main-content {
+            padding: 20px;
+            flex-grow: 1;
         }
 
         .card {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 20px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-            transition: all 0.3s ease;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            border: none;
         }
 
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+        .card-header {
+            background-color: var(--primary-color);
+            color: var(--white-color);
+            font-weight: 600;
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
         }
 
         .btn-primary {
-            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
-            border: none;
-            border-radius: 25px;
-            padding: 10px 25px;
-            font-weight: 600;
-            transition: all 0.3s ease;
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
         }
 
         .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+            background-color: var(--secondary-color);
+            border-color: var(--secondary-color);
         }
 
-        .btn-success {
-            background: linear-gradient(135deg, var(--success-color) 0%, #059669 100%);
-            border: none;
-            border-radius: 25px;
-        }
-
-        .btn-warning {
-            background: linear-gradient(135deg, var(--warning-color) 0%, #d97706 100%);
-            border: none;
-            border-radius: 25px;
-        }
-
-        .btn-danger {
-            background: linear-gradient(135deg, var(--danger-color) 0%, #dc2626 100%);
-            border: none;
-            border-radius: 25px;
-        }
-
-        .form-control,
-        .form-select {
-            border-radius: 15px;
-            border: 2px solid #e5e7eb;
-            transition: all 0.3s ease;
-        }
-
-        .form-control:focus,
-        .form-select:focus {
+        .btn-outline-primary {
+            color: var(--primary-color);
             border-color: var(--primary-color);
-            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
         }
 
-        .module-card {
-            cursor: pointer;
-            transition: all 0.3s ease;
+        .btn-outline-primary:hover {
+            background-color: var(--primary-color);
+            color: var(--white-color);
         }
 
-        .module-card:hover {
-            transform: scale(1.05);
+        .table thead {
+            background-color: var(--primary-color);
+            color: var(--white-color);
         }
 
-        .module-icon {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+        .table tbody tr:hover {
+            background-color: rgba(0, 0, 0, 0.05);
         }
 
-        .user-info {
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 15px;
-            padding: 0.5rem 1rem;
-            color: white;
+        .badge {
+            font-size: 0.8em;
+            padding: 0.4em 0.7em;
+            border-radius: 0.25rem;
         }
 
-        .table {
-            border-radius: 15px;
-            overflow: hidden;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        /* Estilos específicos para badges de estado y aprobación */
+        .badge.bg-success {
+            background-color: #10b981 !important;
         }
 
-        .table th {
-            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
-            color: white;
-            border: none;
-            font-weight: 600;
+        .badge.bg-danger {
+            background-color: #ef4444 !important;
         }
 
-        .status-badge {
-            white-space: nowrap;
-            padding: 0.3rem 0.8rem;
-            border-radius: 20px;
-            font-weight: 600;
-            font-size: 0.75rem;
-            line-height: 1;
-            display: inline-block;
-            max-width: 100%;
-            overflow: hidden;
-            text-overflow: ellipsis;
+        .badge.bg-warning {
+            background-color: #f59e0b !important;
+            color: #fff;
         }
 
-        .status-damaged {
-            background: rgba(239, 68, 68, 0.1);
-            color: var(--danger-color);
-            border: 1px solid rgba(239, 68, 68, 0.3);
+        .badge.bg-info {
+            background-color: #3b82f6 !important;
         }
 
-        .status-expired {
-            background: rgba(245, 158, 11, 0.1);
-            color: var(--warning-color);
-            border: 1px solid rgba(245, 158, 11, 0.3);
+        .modal-content {
+            border-radius: 8px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
         }
 
-        .status-soon {
-            background: rgba(59, 130, 246, 0.1);
-            color: #3b82f6;
-            border: 1px solid rgba(59, 130, 246, 0.3);
+        .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.25rem rgba(47, 163, 95, 0.25);
         }
 
-        .floating-btn {
-            position: fixed;
-            bottom: 2rem;
-            right: 2rem;
-            z-index: 1000;
-            border-radius: 50%;
-            width: 60px;
-            height: 60px;
-            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
-        }
-
-        .fade-in {
-            animation: fadeIn 0.5s ease-in;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .slide-in {
-            animation: slideIn 0.5s ease-out;
-        }
-
-        @keyframes slideIn {
-            from {
-                transform: translateX(-100%);
-            }
-
-            to {
-                transform: translateX(0);
-            }
-        }
-
-        .photo-preview {
-            max-width: 100px;
-            max-height: 100px;
-            object-fit: cover;
-            border-radius: 10px;
-            border: 2px solid #e5e7eb;
-        }
-
-        @media (max-width: 768px) {
-            .container-fluid {
-                padding: 1rem;
-            }
-
-            .floating-btn {
-                bottom: 1rem;
-                right: 1rem;
-                width: 50px;
-                height: 50px;
-            }
+        footer {
+            background-color: var(--dark-color);
+            color: var(--light-color);
+            padding: 15px 0;
+            text-align: center;
+            margin-top: auto;
         }
     </style>
 </head>
 
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark">
+    <nav class="navbar navbar-expand-lg">
         <div class="container-fluid">
             <a class="navbar-brand" href="#"><i class="fas fa-utensils me-2"></i>Longevus</a>
 
@@ -551,8 +460,8 @@
         // Configuración de Google Sheets y Drive
         const GOOGLE_SHEETS_URL = 'https://docs.google.com/spreadsheets/d/1J5TOdUkJGWfvxzemzolU8i1AAoEAqbTiF8cOdaXrnG8/edit?usp=sharing'; // Tu URL
         const GOOGLE_DRIVE_FOLDER = 'https://drive.google.com/drive/folders/1-eloGjWFm3JCFwGn5DdBqoPZTLXOan0x?usp=drive_link'; // Tu URL de carpeta
-        // URL de tu Apps Script para envío de datos. ¡ACTUALIZADA con la que me proporcionaste!
-        const APPS_SCRIPT_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzOIzDEqoklHHLxdA-po8YqHVys4Sume27uhHblI3aqlNQB2v7xhm6Hkyy9QxXFTHs/exec';
+        // URL de tu Apps Script para envío de datos. ¡ACTUALÍZALA CON TU URL REAL!
+        const APPS_SCRIPT_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzOIzDEqoklHHLxdA-po8YqHVys4Sume27uhHkyy9QxXFTHs/exec'; // ESTA ES SOLO UN EJEMPLO, CÁMBIALA.
 
 
         // Inicialización
@@ -753,7 +662,6 @@
         });
 
         // FUNCION AJUSTADA PARA CARGAR DATOS Y MOSTRAR FOTOS/FECHAS CORRECTAMENTE
-        // FUNCION AJUSTADA PARA CARGAR DATOS Y MOSTRAR FOTOS/FECHAS CORRECTAMENTE
         async function loadDatabase() {
             const tableBody = document.getElementById('databaseTable');
             tableBody.innerHTML = `<tr><td colspan="8" class="text-center py-4">Cargando...</td></tr>`;
@@ -782,10 +690,20 @@
 
                 const rows = json.table.rows.map(r => {
                     let rawDate = r.c[1]?.v || '';
-                    let fotoUrl = r.c[7]?.v || '';
+                    let driveUrl = r.c[7]?.v || ''; // Esta es la URL de Drive: 'https://drive.google.com/uc?export=view&id=FILE_ID'
 
-                    // AQUÍ ESTÁ EL CAMBIO CLAVE: Limpiar la URL de la foto de posibles comillas simples.
-                    fotoUrl = fotoUrl.replace(/^'|'$/g, '');
+                    // Paso 1: Limpia la URL de Drive de posibles comillas simples extra
+                    driveUrl = driveUrl.replace(/^'|'$/g, '');
+
+                    // Paso 2: Extrae el ID del archivo de la URL de Drive
+                    let fileId = '';
+                    const idMatch = driveUrl.match(/id=([a-zA-Z0-9_-]+)/);
+                    if (idMatch && idMatch[1]) {
+                        fileId = idMatch[1];
+                    }
+
+                    // Paso 3: Construye la nueva URL que apunta a tu Apps Script para servir la imagen
+                    let appsScriptImageUrl = fileId ? `${APPS_SCRIPT_WEB_APP_URL}?id=${fileId}` : '';
 
                     return {
                         fecha: rawDate,
@@ -794,7 +712,7 @@
                         nombreUtensilio: r.c[4]?.v || '',
                         descripcionDano: r.c[5]?.v || '',
                         apruebaDano: r.c[6]?.v || '',
-                        fotoUrl: fotoUrl // La URL ya está limpia aquí.
+                        fotoUrl: appsScriptImageUrl // ¡Ahora usamos la URL que apunta a tu Apps Script!
                     };
                 });
 
@@ -849,8 +767,6 @@
 
         // FUNCION AJUSTADA PARA EL FORMATO DE FECHA
         function formatDate(dateString) {
-            console.log("formatDate received:", dateString, "Type:", typeof dateString); // Déjalo para depuración
-
             if (!dateString || typeof dateString !== 'string') {
                 return 'Fecha inválida';
             }
