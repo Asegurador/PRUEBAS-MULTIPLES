@@ -863,17 +863,36 @@
 
         // FUNCION AJUSTADA PARA EL FORMATO DE FECHA
         function formatDate(dateString) {
-                console.log("formatDate received:", dateString, "Type:", typeof dateString); // <<-- Añade esto
-            if (!dateString || typeof dateString !== 'string' || dateString.length !== 10) {
+            console.log("formatDate received:", dateString, "Type:", typeof dateString); // Déjalo para depuración
+
+            if (!dateString || typeof dateString !== 'string') {
                 return 'Fecha inválida';
             }
 
-            // Asume dateString está en formato YYYY-MM-DD
-            const parts = dateString.split('-');
-            if (parts.length === 3 && parts[0].length === 4 && parts[1].length === 2 && parts[2].length === 2) {
-                // Reordena a DD-MM-YYYY
-                return `<span class="math-inline">\{parts\[2\]\}\-</span>{parts[1]}-${parts[0]}`;
+            let date;
+
+            // Intenta parsear el formato Date(YYYY,M,D) de Google Sheets
+            const dateMatch = dateString.match(/Date\((\d{4}),(\d{1,2}),(\d{1,2})\)/);
+            if (dateMatch) {
+                const year = parseInt(dateMatch[1]);
+                const month = parseInt(dateMatch[2]); // Meses en JS son 0-11
+                const day = parseInt(dateMatch[3]);
+                date = new Date(year, month, day);
+            } else if (dateString.length === 10 && dateString.includes('-')) {
+                // Intenta parsear el formato YYYY-MM-DD
+                const parts = dateString.split('-');
+                if (parts.length === 3) {
+                    date = new Date(parts[0], parseInt(parts[1]) - 1, parts[2]); // Restar 1 al mes
+                }
             }
+
+            if (date instanceof Date && !isNaN(date.getTime())) {
+                const day = String(date.getDate()).padStart(2, '0');
+                const month = String(date.getMonth() + 1).padStart(2, '0'); // Sumar 1 al mes
+                const year = date.getFullYear();
+                return `${day}-${month}-${year}`;
+            }
+
             return 'Fecha inválida';
         }
 
