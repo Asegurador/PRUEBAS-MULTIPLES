@@ -753,26 +753,23 @@
         });
 
         // FUNCION AJUSTADA PARA CARGAR DATOS Y MOSTRAR FOTOS/FECHAS CORRECTAMENTE
+        // FUNCION AJUSTADA PARA CARGAR DATOS Y MOSTRAR FOTOS/FECHAS CORRECTAMENTE
         async function loadDatabase() {
             const tableBody = document.getElementById('databaseTable');
             tableBody.innerHTML = `<tr><td colspan="8" class="text-center py-4">Cargando...</td></tr>`;
 
-            const mesFiltro = document.getElementById('filtroMes').value; // Renombrado para claridad
+            const mesFiltro = document.getElementById('filtroMes').value;
             const tipo = document.getElementById('filtroTipo').value;
             const estado = document.getElementById('filtroEstado').value;
             const aprobacion = document.getElementById('filtroAprobacion').value;
 
             try {
-                // Se usa la URL gviz/tq para obtener los datos de la hoja de cálculo
-                // El parámetro 'sheet' debe coincidir con el nombre de tu pestaña en Google Sheets
-                const sheetId = GOOGLE_SHEETS_URL.match(/\/d\/(.*?)\//)[1]; // Extrae el ID de la URL
+                const sheetId = GOOGLE_SHEETS_URL.match(/\/d\/(.*?)\//)[1];
                 const gvizUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&sheet=Utensilios`;
 
                 const response = await fetch(gvizUrl);
                 const text = await response.text();
 
-                // --- PARSING DEL JSONP MEJORADO ---
-                // Busca el inicio y fin del objeto JSON dentro de la respuesta
                 const jsonStart = text.indexOf('{');
                 const jsonEnd = text.lastIndexOf('}');
                 let json;
@@ -782,22 +779,13 @@
                 } else {
                     throw new Error('No se pudo parsear la respuesta JSON de Google Sheets.');
                 }
-                // --- FIN PARSING DEL JSONP MEJORADO ---
 
                 const rows = json.table.rows.map(r => {
-                    // r.c[index] contiene el objeto de celda. .v es el valor, .f es el valor formateado (si existe)
-                    // Asegúrate de que los índices coincidan con tus columnas en Google Sheet (0-based)
-                    // Columna 1 (ID - no mostrada)
-                    // Columna 2 (Fecha) -> index 1
-                    // Columna 3 (Responsable) -> index 2
-                    // Columna 4 (Tipo de Utensilio) -> index 3
-                    // Columna 5 (Nombre Utensilio) -> index 4
-                    // Columna 6 (Descripción Daño) -> index 5
-                    // Columna 7 (Aprueba Daño) -> index 6
-                    // Columna 8 (URL Foto) -> index 7
+                    let rawDate = r.c[1]?.v || '';
+                    let fotoUrl = r.c[7]?.v || '';
 
-                    let rawDate = r.c[1]?.v || ''; // Fecha en formato YYYY-MM-DD
-                    let fotoUrl = r.c[7]?.v || ''; // URL de la foto tal cual la guarda Apps Script
+                    // AQUÍ ESTÁ EL CAMBIO CLAVE: Limpiar la URL de la foto de posibles comillas simples.
+                    fotoUrl = fotoUrl.replace(/^'|'$/g, '');
 
                     return {
                         fecha: rawDate,
@@ -806,33 +794,25 @@
                         nombreUtensilio: r.c[4]?.v || '',
                         descripcionDano: r.c[5]?.v || '',
                         apruebaDano: r.c[6]?.v || '',
-                        fotoUrl: fotoUrl // Usamos la URL directamente del Apps Script
+                        fotoUrl: fotoUrl // La URL ya está limpia aquí.
                     };
                 });
 
                 const filtrados = rows.filter(r => {
-                    // --- INICIO DE CAMBIO PARA EL FILTRO DE FECHA ---
                     let mesDeFila = '';
                     const dateMatch = r.fecha.match(/Date\((\d{4}),(\d{1,2}),(\d{1,2})\)/);
                     if (dateMatch) {
-                        // El mes de Google Sheets (dateMatch[2]) es 0-indexado.
-                        // Para comparar con los valores del filtro (01-12), sumamos 1 y formateamos.
                         mesDeFila = String(parseInt(dateMatch[2]) + 1).padStart(2, '0');
                     } else if (r.fecha.length === 10 && r.fecha.includes('-')) {
-                        // En caso de que alguna fecha venga como YYYY-MM-DD
                         mesDeFila = r.fecha.split('-')[1];
                     }
 
-                    // Asegura que el estado para filtrar sea el mismo que se define en getStatusBadge
-                    
-                    // Extrae solo el texto del badge para la comparación
                     const tempDiv = document.createElement('div');
                     tempDiv.innerHTML = getStatusBadge(r.descripcionDano);
                     const estadoParaFiltrar = tempDiv.textContent.trim();
 
                     const aprobacionActual = r.apruebaDano;
                     
-                    // Usa mesDeFila para la comparación
                     return (!mesFiltro || mesFiltro === mesDeFila) &&
                         (!tipo || tipo === r.tipoUtensilio) &&
                         (!estado || estado === estadoParaFiltrar) &&
@@ -854,7 +834,7 @@
                         <td>${getApprovalBadge(r.apruebaDano)}</td>
                         <td>
                             ${r.fotoUrl ? `
-                                <button class="btn btn-sm btn-outline-primary" onclick="showPhoto('${r.fotoUrl.replace(/'/g, "\\'")}')">
+                                <button class="btn btn-sm btn-outline-primary" onclick="showPhoto('${r.fotoUrl}')">
                                     <i class="fas fa-image me-1"></i> Ver Foto
                                 </button>` : '<span class="text-muted">Sin Foto</span>'}
                         </td>
