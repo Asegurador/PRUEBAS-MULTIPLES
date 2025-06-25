@@ -944,7 +944,7 @@ function formatDate(dateString) {
                         <td><span class="text-muted">🔒</span></td>
                     </tr>
                 `).join('');
-            } catch (err) {
+         catch (err) {
                 console.error('❌ Error al cargar Google Sheets:', err);
                 tableBody.innerHTML = `<tr><td colspan="8" class="text-center text-danger py-4">Error al cargar datos. ${err.message || 'Verifique la URL de la hoja, el nombre de la pestaña "Utensilios" o los permisos.'}</td></tr>`;
             }
