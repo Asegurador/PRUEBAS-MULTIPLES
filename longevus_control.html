@@ -519,9 +519,10 @@
         </div>
     </div>
 
-    <div class="modal fade" id="photoModal" tabindex="-1" aria-labelledby="photoModalLabel" aria-hidden="true">
+<div class="modal fade" id="photoModal" tabindex="-1" aria-labelledby="photoModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered modal-xl">
     <div class="modal-content bg-dark text-white border-0 rounded-4 shadow-lg">
+      
       <div class="modal-header border-0 px-4 pt-4">
         <h5 class="modal-title fw-semibold" id="photoModalLabel">
           <i class="fas fa-image me-2"></i>Vista Detallada del Utensilio
@@ -529,19 +530,27 @@
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
       </div>
 
-      <div class="modal-body d-flex justify-content-center align-items-center position-relative p-4" style="min-height: 70vh;">
+      <div class="modal-body p-4 text-center position-relative">
         <!-- Imagen principal -->
         <img id="modalPhoto"
              class="img-fluid rounded-3 shadow-lg border border-light"
              alt="Foto del utensilio"
-             style="max-height: 100%; max-width: 100%; object-fit: contain; transition: transform 0.3s ease;" />
+             style="max-height: 60vh; object-fit: contain; transition: transform 0.3s ease;" />
 
-        <!-- Botón flotante para ver en pantalla completa -->
-        <button class="btn btn-light position-absolute top-0 end-0 m-3 shadow"
+        <!-- Botón flotante de pantalla completa -->
+        <button id="fullscreenBtn"
+                class="btn btn-light position-absolute top-0 end-0 m-3 shadow"
                 onclick="toggleFullScreenImage()"
                 title="Ver en pantalla completa">
           <i class="fas fa-expand fa-lg"></i>
         </button>
+
+        <!-- Descripción debajo de la imagen -->
+        <div id="modalDescription"
+             class="mt-4 px-3 text-light text-wrap"
+             style="font-size: 1.1rem;">
+          <!-- Aquí se inyecta la descripción dinámicamente -->
+        </div>
       </div>
 
       <div class="modal-footer border-0 px-4 pb-4 d-flex justify-content-end">
@@ -552,6 +561,8 @@
     </div>
   </div>
 </div>
+
+
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
 
@@ -575,17 +586,7 @@
             setupInactivityTimer();
         });
 
-        function verificarAutenticacion() {
-            if (sessionStorage.getItem('autenticado') !== 'true') {
-                window.location.href = 'index.html';
-                return;
-            }
 
-            const usuario = sessionStorage.getItem('usuario');
-            if (usuario) {
-                document.getElementById('currentUser').textContent = usuario;
-            }
-        }
 
         function paginaPrincipal() {
             window.location.href = 'index.html';
@@ -841,7 +842,8 @@
                         <td>${getApprovalBadge(r.apruebaDano)}</td>
                         <td>
                             ${r.fotoUrl ? `
-                                <button class="btn btn-sm btn-outline-primary" onclick="showPhoto('${r.fotoUrl}')">
+                                <button class="btn btn-sm btn-outline-primary" onclick="showPhoto('${r.fotoUrl}', \`${r.descripcionDano.replace(/`/g, '\\`')}\`)"
+>
                                     <i class="fas fa-image me-1"></i> Ver Foto
                                 </button>` : '<span class="text-muted">Sin Foto</span>'}
                         </td>
@@ -977,7 +979,8 @@
                 window.location.href = 'longevus_login.html';
             }, 1500);
         }
-           function toggleZoom(img) {
+              
+              function toggleZoom(img) {
   if (img.style.transform === 'scale(2)') {
     img.style.transform = 'scale(1)';
     img.style.cursor = 'zoom-in';
@@ -987,27 +990,59 @@
   }
 }
 
-              
-  function toggleFullScreenImage() {
+              function showPhoto(url, descripcion = '') {
   const img = document.getElementById('modalPhoto');
+  const desc = document.getElementById('modalDescription');
+
+  // ✅ Usamos la URL tal como viene (thumbnail)
+  img.src = url;
+  img.style.transform = 'scale(1)';
+  img.style.cursor = 'zoom-in';
+
+  // Mostrar la descripción
+  desc.textContent = descripcion;
+
+  // Mostrar el modal
+  const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('photoModal'));
+  modal.show();
+}
+
+
+              
+function toggleFullScreenImage() {
+  const img = document.getElementById('modalPhoto');
+  const desc = document.getElementById('modalDescription');
+  const btn = document.getElementById('fullscreenBtn');
+
   if (!document.fullscreenElement) {
-    if (img.requestFullscreen) {
-      img.requestFullscreen();
-    } else if (img.webkitRequestFullscreen) {
-      img.webkitRequestFullscreen();
-    } else if (img.msRequestFullscreen) {
-      img.msRequestFullscreen();
-    }
+    // Ocultar extras
+    desc.style.display = 'none';
+    btn.style.display = 'none';
+
+    // Activar fullscreen
+    if (img.requestFullscreen) img.requestFullscreen();
+    else if (img.webkitRequestFullscreen) img.webkitRequestFullscreen();
+    else if (img.msRequestFullscreen) img.msRequestFullscreen();
   } else {
-    if (document.exitFullscreen) {
-      document.exitFullscreen();
-    } else if (document.webkitExitFullscreen) {
-      document.webkitExitFullscreen();
-    } else if (document.msExitFullscreen) {
-      document.msExitFullscreen();
-    }
+    // Salir de fullscreen y restaurar elementos
+    if (document.exitFullscreen) document.exitFullscreen();
+    else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+    else if (document.msExitFullscreen) document.msExitFullscreen();
   }
 }
+
+// Al salir de fullscreen, restaurar elementos visibles
+document.addEventListener('fullscreenchange', () => {
+  const desc = document.getElementById('modalDescription');
+  const btn = document.getElementById('fullscreenBtn');
+
+  if (!document.fullscreenElement) {
+    desc.style.display = '';
+    btn.style.display = '';
+  }
+});
+
+
 
     </script>
 </body>
