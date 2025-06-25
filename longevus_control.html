@@ -779,7 +779,7 @@
                 const rows = json.table.rows.map(r => {
                     let rawDate = r.c[1]?.v || '';
                     // 1. Obtén la URL completa de Google Drive de la hoja
-                    let driveUrlFromSheet = r.c[7]?.v || '';
+                    let driveUrlFromSheet = r.c[8]?.v || '';
 
                     // 2. Limpia la URL de Drive de posibles comillas simples extra (si las hay)
                     driveUrlFromSheet = driveUrlFromSheet.replace(/^'|'$/g, '');
