@@ -799,6 +799,8 @@
                     let rawDate = r.c[1]?.v || ''; // Fecha en formato YYYY-MM-DD
                     let fotoUrl = r.c[7]?.v || ''; // URL de la foto tal cual la guarda Apps Script
 
+                    console.log("Raw date from sheet:", rawDate);
+                    
                     return {
                         fecha: rawDate,
                         responsable: r.c[2]?.v || '',
@@ -861,6 +863,7 @@
 
         // FUNCION AJUSTADA PARA EL FORMATO DE FECHA
         function formatDate(dateString) {
+                console.log("formatDate received:", dateString, "Type:", typeof dateString); // <<-- Añade esto
             if (!dateString || typeof dateString !== 'string' || dateString.length !== 10) {
                 return 'Fecha inválida';
             }
@@ -869,7 +872,7 @@
             const parts = dateString.split('-');
             if (parts.length === 3 && parts[0].length === 4 && parts[1].length === 2 && parts[2].length === 2) {
                 // Reordena a DD-MM-YYYY
-                return `${parts[2]}-${parts[1]}-${parts[0]}`;
+                return `<span class="math-inline">\{parts\[2\]\}\-</span>{parts[1]}-${parts[0]}`;
             }
             return 'Fecha inválida';
         }
