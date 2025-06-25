@@ -813,8 +813,7 @@
                 });
 
                 const filtrados = rows.filter(r => {
-                    // Si r.fecha es "Fecha inválida", no podemos dividirla
-                    
+                    // --- INICIO DE CAMBIO PARA EL FILTRO DE FECHA ---
                     let mesDeFila = '';
                     const dateMatch = r.fecha.match(/Date\((\d{4}),(\d{1,2}),(\d{1,2})\)/);
                     if (dateMatch) {
@@ -825,19 +824,20 @@
                         // En caso de que alguna fecha venga como YYYY-MM-DD
                         mesDeFila = r.fecha.split('-')[1];
                     }
+                    // --- FIN DE CAMBIO PARA EL FILTRO DE FECHA ---
 
                     // Asegura que el estado para filtrar sea el mismo que se define en getStatusBadge
-                    // Extrae solo el texto del badge para la comparación
                     const tempDiv = document.createElement('div');
                     tempDiv.innerHTML = getStatusBadge(r.descripcionDano);
                     const estadoParaFiltrar = tempDiv.textContent.trim();
 
                     const aprobacionActual = r.apruebaDano;
 
-                    return (!mes || mes === mesActual) &&
-                        (!tipo || tipo === r.tipoUtensilio) &&
-                        (!estado || estado === estadoParaFiltrar) && // Compara con el texto extraído
-                        (!aprobacion || aprobacion === aprobacionActual);
+                    // AQUI ESTA LA LINEA CORREGIDA PARA EL FILTRO DE MES
+                    return (!mesFiltro || mesFiltro === mesDeFila) &&
+                           (!tipo || tipo === r.tipoUtensilio) &&
+                           (!estado || estado === estadoParaFiltrar) &&
+                           (!aprobacion || aprobacion === aprobacionActual);
                 });
 
                 if (filtrados.length === 0) {
