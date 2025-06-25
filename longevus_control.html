@@ -549,7 +549,7 @@
         const GOOGLE_SHEETS_URL = 'https://docs.google.com/spreadsheets/d/1J5TOdUkJGWfvxzemzolU8i1AAoEAqbTiF8cOdaXrnG8/edit?usp=sharing'; // Tu URL
         const GOOGLE_DRIVE_FOLDER = 'https://drive.google.com/drive/folders/1-eloGjWFm3JCFwGn5DdBqoPZTLXOan0x?usp=drive_link'; // Tu URL de carpeta
         // URL de tu Apps Script para envío de datos. ¡ACTUALÍZALA CON TU URL REAL!
-        const APPS_SCRIPT_WEB_APP_URL = 'https://script.google.com/macros/library/d/1uMiaf2SkMYeVstqyQPSaHnaDIhFlbtIouDQFg5XcoEsIxBZcL7BkuHt3/1'; // ¡CÁMBIALA POR TU URL DE IMPLEMENTACIÓN REAL!
+        const APPS_SCRIPT_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbw_7eKBX5UTjIksrsMi7KTvXE9OAO8q6U_2JVtAy-v5u0xX3dLYfXPEsm-IqtT-_bOP/exec'; // ¡CÁMBIALA POR TU URL DE IMPLEMENTACIÓN REAL!
 
 
         // Inicialización
@@ -793,7 +793,7 @@
 
                     // 4. Construye la nueva URL que apunta a tu Apps Script para servir la imagen
                     // Asegúrate de que APPS_SCRIPT_WEB_APP_URL esté definida correctamente en tu script.
-                    let appsScriptImageUrl = fileId ? `${APPS_SCRIPT_WEB_APP_URL}?id=${fileId}` : '';
+                    let appsScriptImageUrl = fileId ? `https://drive.google.com/thumbnail?id=${fileId}` : '';
 
                     return {
                         fecha: rawDate,
