@@ -367,6 +367,8 @@
                                             <option value="">Seleccionar un tipo...</option>
                                             <option value="Cuchillo">Cuchillo</option>
                                             <option value="Sartén">Sartén</option>
+                                            <option value="Tabla Picar">Tabla Picar</option>
+                                            <option value="Pote Plastico">Pote Plastico</option>
                                             <option value="Olla">Olla</option>
                                             <option value="Cuchara">Cuchara</option>
                                             <option value="Tenedor">Tenedor</option>
@@ -375,6 +377,8 @@
                                             <option value="Taza">Taza</option>
                                             <option value="Batidora">Batidora</option>
                                             <option value="Licuadora">Licuadora</option>
+                                            <option value="Colador">Colador</option>
+                                            <option value="Colador Metal">Colador Metal</option>
                                             <option value="Otro">Otro</option>
                                         </select>
                                     </div>
@@ -459,6 +463,8 @@
                                 <option value="">Todos</option>
                                 <option value="Cuchillo">Cuchillo</option>
                                 <option value="Sartén">Sartén</option>
+                                <option value="Tabla Picar">Tabla Picar</option>
+                                <option value="Pote Plastico">Pote Plastico</option>
                                 <option value="Olla">Olla</option>
                                 <option value="Cuchara">Cuchara</option>
                                 <option value="Tenedor">Tenedor</option>
@@ -467,6 +473,8 @@
                                 <option value="Taza">Taza</option>
                                 <option value="Batidora">Batidora</option>
                                 <option value="Licuadora">Licuadora</option>
+                                <option value="Colador">Colador</option>
+                                <option value="Colador Metal">Colador Metal</option>
                                 <option value="Otro">Otro</option>
                             </select>
                         </div>
@@ -907,9 +915,9 @@
 
         function getStatusBadge(descripcion) {
             const desc = descripcion.toLowerCase();
-            if (desc.includes('dañado') || desc.includes('roto') || desc.includes('quebrado')
-                || desc.includes('partido') || desc.includes('no sirve') || desc.includes('caduc')
-                || desc.includes('vencido') || desc.includes('expirado')) {
+            if (desc.includes('dañado') || desc.includes('roto') || desc.includes('quebrado') || desc.includes('Dañados') || desc.includes('viejos') || desc.includes('partidos')
+                || desc.includes('partido') || desc.includes('no sirve') || desc.includes('caduc') || desc.includes('oxidado') || desc.includes('Oxidado') || desc.includes('Partido')
+                || desc.includes('vencido') || desc.includes('expirado')) || desc.includes('deteriorados') || desc.includes('Partidos') || desc.includes('Quebrado') {
                 return '<span class="status-badge status-damaged">Dañado</span>';
             } else {
                 return '<span class="status-badge status-soon">Pronto a Dañar</span>';
