@@ -913,16 +913,17 @@
             return 'Fecha inválida';
         }
 
-        function getStatusBadge(descripcion) {
-            const desc = descripcion.toLowerCase();
-            if (desc.includes('dañado') || desc.includes('roto') || desc.includes('quebrado') || desc.includes('Dañados') || desc.includes('viejos') || desc.includes('partidos')
-                || desc.includes('partido') || desc.includes('no sirve') || desc.includes('caduc') || desc.includes('oxidado') || desc.includes('Oxidado') || desc.includes('Partido')
-                || desc.includes('vencido') || desc.includes('expirado')) || desc.includes('deteriorados') || desc.includes('Partidos') || desc.includes('Quebrado') {
-                return '<span class="status-badge status-damaged">Dañado</span>';
-            } else {
-                return '<span class="status-badge status-soon">Pronto a Dañar</span>';
-            }
+function getStatusBadge(descripcion) {
+    const desc = descripcion.toLowerCase();
+    const keywords = ['dañado', 'Dañado', 'Partido', 'Quebrado', 'roto', 'quebrado', 'viejo', 'partido', 'no sirve', 'caduc', 'oxidado', 'vencido', 'expirado', 'deteriorado'];
+
+    for (const keyword of keywords) {
+        if (desc.includes(keyword)) {
+            return '<span class="status-badge status-damaged">Dañado</span>';
         }
+    }
+    return '<span class="status-badge status-soon">Pronto a Dañar</span>';
+}
 
         function getApprovalBadge(aprobacion) {
             switch (aprobacion) {
